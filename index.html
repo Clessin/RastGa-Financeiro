@@ -1,0 +1,2895 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1E1B4B" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Controle Financeiro Pessoal | PWA</title>
+  <link rel="manifest" href="public/manifest.json" />
+  <!-- Supabase JS SDK (@supabase/supabase-js) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --cherry-blue: #1E1B4B;
+      --cherry-blue-rich: #2A1B4E;
+      --cherry-blue-light: #EEF2FF;
+      --bg-body: #F8F9FA;
+      --text-white: #FFFFFF;
+      --text-label: #A0A0A0;
+      --text-title: #1A1A1A;
+      --btn-quick: #F0F0F2;
+      --tab-inactive: #7A7A7A;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #F8F9FA;
+      color: #1A1A1A;
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 440px;
+      min-height: 100vh;
+      background-color: #F8F9FA;
+      padding-bottom: 92px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 24px rgba(30, 27, 75, 0.06);
+    }
+
+    /* ====================================================================
+       SEÇÃO 1: CABEÇALHO PRINCIPAL (EXCLUSIVO DA ABA INÍCIO - AZUL CEREJA)
+       ==================================================================== */
+    .main-header {
+      background: linear-gradient(145deg, #1E1B4B 0%, #2A1B4E 100%);
+      color: #FFFFFF;
+      text-align: left;
+      padding: 28px 20px 22px 20px;
+    }
+
+    .header-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .salary-label {
+      font-size: 14px;
+      font-weight: 400;
+      color: #A0A0A0;
+    }
+
+    .db-badge {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      color: #A0A0A0;
+      border: none;
+      cursor: pointer;
+    }
+
+    .salary-value-btn {
+      background: none;
+      border: none;
+      color: #FFFFFF;
+      font-size: 28px;
+      font-weight: 700;
+      text-align: left;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 2px 0;
+      letter-spacing: -0.4px;
+      transition: opacity 0.15s ease, transform 0.1s ease;
+    }
+
+    .salary-value-btn:hover {
+      opacity: 0.9;
+    }
+
+    .salary-value-btn:active {
+      transform: scale(0.99);
+    }
+
+    .salary-breakdown {
+      font-size: 12px;
+      color: #A0A0A0;
+      margin-top: 2px;
+    }
+
+    .substatus-row {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .substatus-text {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .substatus-text strong {
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+
+    .eye-toggle-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      border: none;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s ease;
+    }
+
+    .eye-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    /* ====================================================================
+       CABEÇALHO COMPACTO PARA TELAS INTERNAS (COM BOTÃO "← Voltar")
+       ==================================================================== */
+    .internal-header {
+      background: linear-gradient(145deg, #1E1B4B 0%, #2A1B4E 100%);
+      color: #FFFFFF;
+      padding: 16px 20px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .internal-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-home-btn {
+      background: rgba(255, 255, 255, 0.14);
+      border: none;
+      color: #FFFFFF;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+
+    .back-home-btn:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    .back-home-btn:active {
+      transform: scale(0.96);
+    }
+
+    .internal-page-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #FFFFFF;
+      letter-spacing: -0.2px;
+    }
+
+    /* ====================================================================
+       CORPO E SEÇÕES
+       ==================================================================== */
+    .main-body {
+      padding: 22px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      flex: 1;
+      background-color: #F8F9FA;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1A1A1A;
+    }
+
+    .section-link-btn {
+      background: none;
+      border: none;
+      font-size: 12px;
+      font-weight: 500;
+      color: #6B7280;
+      cursor: pointer;
+    }
+
+    /* ====================================================================
+       SEÇÃO 2: AÇÕES RÁPIDAS (CARROSSEL HORIZONTAL)
+       ==================================================================== */
+    .quick-actions-carousel {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 4px;
+    }
+
+    .quick-actions-carousel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .quick-action-item {
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 68px;
+      cursor: pointer;
+    }
+
+    .quick-action-circle {
+      width: 56px;
+      height: 56px;
+      border-radius: 9999px;
+      background-color: #F0F0F2;
+      color: #1E1B4B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.12s ease, filter 0.12s ease;
+    }
+
+    .quick-action-item:hover .quick-action-circle {
+      filter: brightness(0.95);
+    }
+
+    .quick-action-item:active .quick-action-circle {
+      transform: scale(0.95);
+    }
+
+    .quick-action-label {
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #1A1A1A;
+      white-space: nowrap;
+    }
+
+    /* ====================================================================
+       SEÇÃO 3: MINHAS DÍVIDAS
+       ==================================================================== */
+    .debts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .debt-card {
+      background-color: #FFFFFF;
+      border-radius: 16px;
+      padding: 14px;
+      border: 1px solid #ECEEF2;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .debt-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .debt-icon-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .debt-info {
+      min-width: 0;
+    }
+
+    .debt-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .debt-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1A1A1A;
+      line-height: 1.25;
+    }
+
+    .debt-tag-chip {
+      font-size: 10px;
+      font-weight: 500;
+      background-color: #F0F0F2;
+      color: #52525B;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .debt-amount {
+      font-size: 14px;
+      font-weight: 400;
+      color: #71717A;
+      margin-top: 2px;
+    }
+
+    .debt-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .due-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .pay-pill-btn {
+      background-color: #1E1B4B;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 9999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s ease, transform 0.1s ease;
+    }
+
+    .pay-pill-btn:hover {
+      opacity: 0.9;
+    }
+
+    .pay-pill-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* ====================================================================
+       SEÇÃO 4: ÚLTIMOS GASTOS
+       ==================================================================== */
+    .expenses-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 11px;
+    }
+
+    .expense-card {
+      background-color: #FFFFFF;
+      border-radius: 16px;
+      padding: 13px;
+      border: 1px solid #ECEEF2;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .expense-icon-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 9999px;
+      background-color: #F0F0F2;
+      color: #71717A;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .expense-meta {
+      min-width: 0;
+    }
+
+    .expense-tag {
+      font-size: 12px;
+      font-weight: 500;
+      color: #71717A;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .expense-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1A1A1A;
+      margin-top: 2px;
+    }
+
+    /* ====================================================================
+       RELATÓRIOS MINIMALISTAS (BARRAS EM AZUL CEREJA)
+       ==================================================================== */
+    .report-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 16px;
+      border: 1px solid #ECEEF2;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    }
+
+    .report-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1A1A1A;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .report-card-sub {
+      font-size: 12px;
+      color: #71717A;
+      margin-bottom: 14px;
+    }
+
+    .thermometer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .thermometer-col {
+      background: #F8F9FA;
+      border: 1px solid #ECEEF2;
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: left;
+    }
+
+    .thermometer-label {
+      font-size: 11px;
+      color: #71717A;
+      line-height: 1.25;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .thermometer-val {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1A1A1A;
+    }
+
+    .bar-track {
+      width: 100%;
+      height: 8px;
+      background-color: #E4E4E7;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .bar-fill-cherry {
+      height: 100%;
+      background: linear-gradient(90deg, #1E1B4B 0%, #2A1B4E 100%);
+      border-radius: 999px;
+      transition: width 0.25s ease;
+    }
+
+    .bar-fill-neutral {
+      height: 100%;
+      background-color: #9CA3AF;
+      border-radius: 999px;
+      transition: width 0.25s ease;
+    }
+
+    .report-row-item {
+      margin-bottom: 12px;
+    }
+
+    .report-row-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .report-row-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: #1A1A1A;
+    }
+
+    .report-alert-box {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* ====================================================================
+       SEÇÃO 5: BARRA DE NAVEGAÇÃO INFERIOR (AZUL CEREJA #1E1B4B)
+       ==================================================================== */
+    .bottom-tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(145deg, #1E1B4B 0%, #2A1B4E 100%);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      justify-content: center;
+      z-index: 40;
+    }
+
+    .bottom-tab-inner {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 10px 16px;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: #7A7A7A;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 4px 16px;
+      transition: color 0.15s ease;
+    }
+
+    .tab-btn.active {
+      color: #FFFFFF;
+    }
+
+    /* ====================================================================
+       MODAIS E FORMULÁRIOS
+       ==================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 14, 38, 0.62);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 100;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 380px;
+      background: #FFFFFF;
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 20px 40px rgba(30, 27, 75, 0.25);
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1A1A1A;
+      margin-bottom: 8px;
+    }
+
+    .modal-subtitle {
+      font-size: 13px;
+      color: #71717A;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #52525B;
+      margin-bottom: 5px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 13px;
+      border-radius: 12px;
+      border: 1px solid #D4D4D8;
+      font-size: 14px;
+      color: #1A1A1A;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: #1E1B4B;
+    }
+
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .icon-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .icon-pick-btn {
+      padding: 9px 4px;
+      border-radius: 12px;
+      border: 1px solid #E4E4E7;
+      background: #F8F9FA;
+      font-size: 12px;
+      font-weight: 500;
+      color: #3F3F46;
+      cursor: pointer;
+    }
+
+    .icon-pick-btn.selected {
+      background: #1E1B4B;
+      color: #FFFFFF;
+      border-color: #1E1B4B;
+    }
+
+    .tag-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .tag-sug-btn {
+      background: #F0F0F2;
+      border: none;
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 11px;
+      color: #3F3F46;
+      cursor: pointer;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      padding: 11px;
+      border-radius: 999px;
+      border: none;
+      background: #F0F0F2;
+      color: #1A1A1A;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      flex: 1;
+      padding: 11px;
+      border-radius: 999px;
+      border: none;
+      background: #1E1B4B;
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .mode-switcher {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #F0F0F2;
+      padding: 4px;
+      border-radius: 999px;
+      margin-bottom: 16px;
+    }
+
+    .mode-switch-btn {
+      padding: 8px;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      font-size: 12px;
+      font-weight: 600;
+      color: #52525B;
+      cursor: pointer;
+    }
+
+    .mode-switch-btn.active {
+      background: #1E1B4B;
+      color: #FFFFFF;
+    }
+
+    .filter-chips-row {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 4px;
+    }
+
+    .filter-chips-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-chip {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid #E4E4E7;
+      background: #FFFFFF;
+      font-size: 12px;
+      font-weight: 500;
+      color: #52525B;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .filter-chip.active {
+      background: #1E1B4B;
+      color: #FFFFFF;
+      border-color: #1E1B4B;
+    }
+
+    .goal-card {
+      background: #FFFFFF;
+      border: 1px solid #ECEEF2;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: #FFFFFF;
+      border: 1px solid #ECEEF2;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- ================================================================== -->
+    <!-- SEÇÃO 1: CABEÇALHO PRINCIPAL (EXCLUSIVO DA ABA INÍCIO)             -->
+    <!-- ================================================================== -->
+    <header id="homeSalaryHeader" class="main-header">
+      <div class="header-top-row">
+        <span class="salary-label">Salário Total</span>
+        <button type="button" id="dbStatusBtn" class="db-badge" title="Configurar conexão Supabase">
+          Modo Local Ativo
+        </button>
+      </div>
+
+      <!-- Valor Principal Clicável -> Etapa 1: Modal de Confirmação -->
+      <button type="button" id="salaryMainBtn" class="salary-value-btn" title="Toque para alterar o seu salário atual">
+        <span id="salaryMainDisplay">R$ 0,00</span>
+      </button>
+
+      <div id="salaryBreakdownText" class="salary-breakdown" style="display: none;"></div>
+
+      <!-- Linha de Substatus + Ícone de Olho -->
+      <div class="substatus-row">
+        <p class="substatus-text">
+          Saldo Atual Disponível: <strong id="availableBalanceDisplay">R$ 0,00</strong>
+        </p>
+        <button type="button" id="eyeToggleBtn" class="eye-toggle-btn" aria-label="Alternar visibilidade dos valores">
+          <span id="eyeIconContainer"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ================================================================== -->
+    <!-- CABEÇALHO COMPACTO PARA TELAS INTERNAS (SEM SALÁRIO + "← Voltar")  -->
+    <!-- ================================================================== -->
+    <header id="internalCompactHeader" class="internal-header">
+      <div class="internal-header-left">
+        <button type="button" id="backToHomeBtn" class="back-home-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+          <span>Voltar</span>
+        </button>
+        <h1 id="internalHeaderTitle" class="internal-page-title">Página</h1>
+      </div>
+    </header>
+
+    <!-- ================================================================== -->
+    <!-- PÁGINA 1: INÍCIO (HOME)                                            -->
+    <!-- ================================================================== -->
+    <main id="pageHome" class="main-body">
+      <!-- SEÇÃO 2: AÇÕES RÁPIDAS (CARROSSEL HORIZONTAL) -->
+      <section>
+        <div class="section-header">
+          <h2 class="section-title">Ações Rápidas</h2>
+        </div>
+        <div class="quick-actions-carousel">
+          <!-- 1. Pagar conta -->
+          <button type="button" class="quick-action-item" id="qaPayBillBtn">
+            <div class="quick-action-circle">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 6v12" />
+                <path d="M15 9.5c0-1.38-1.34-2.5-3-2.5s-3 1.12-3 2.5 1.34 2 3 2.5 3 1.12 3 2.5-1.34 2.5-3 2.5-3-1.12-3-2.5" />
+                <path d="M4 12a8 8 0 0 1 13.66-5.66L20 8.5" />
+                <polyline points="20 4 20 8.5 15.5 8.5" />
+                <path d="M20 12a8 8 0 0 1-13.66 5.66L4 15.5" />
+                <polyline points="4 20 4 15.5 8.5 15.5" />
+              </svg>
+            </div>
+            <span class="quick-action-label">Pagar conta</span>
+          </button>
+
+          <!-- 2. Novo gasto -->
+          <button type="button" class="quick-action-item" id="qaNewExpenseBtn">
+            <div class="quick-action-circle">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </div>
+            <span class="quick-action-label">Novo gasto</span>
+          </button>
+
+          <!-- 3. Relatórios (NOVO ÍCONE NO CARROSSEL) -->
+          <button type="button" class="quick-action-item" id="qaReportsBtn">
+            <div class="quick-action-circle">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+              </svg>
+            </div>
+            <span class="quick-action-label">Relatórios</span>
+          </button>
+
+          <!-- 4. Metas -->
+          <button type="button" class="quick-action-item" id="qaGoalsBtn">
+            <div class="quick-action-circle">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9" />
+                <circle cx="12" cy="12" r="5" />
+                <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+              </svg>
+            </div>
+            <span class="quick-action-label">Metas</span>
+          </button>
+
+          <!-- 5. Histórico -->
+          <button type="button" class="quick-action-item" id="qaHistoryBtn">
+            <div class="quick-action-circle">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                <polyline points="3 3 3 8 8 8" />
+                <polyline points="12 7 12 12 15.5 14" />
+              </svg>
+            </div>
+            <span class="quick-action-label">Histórico</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- SEÇÃO 3: MINHAS DÍVIDAS -->
+      <section>
+        <div class="section-header">
+          <h2 class="section-title">Minhas Dívidas</h2>
+          <button type="button" class="section-link-btn" id="seeAllDebtsBtn">Ver todas</button>
+        </div>
+        <div id="homeDebtsContainer" class="debts-list"></div>
+      </section>
+
+      <!-- SEÇÃO 4: ÚLTIMOS GASTOS -->
+      <section>
+        <div class="section-header">
+          <h2 class="section-title">Últimos Gastos</h2>
+          <button type="button" class="section-link-btn" id="seeAllExpensesBtn">Ver todos</button>
+        </div>
+        <div id="homeExpensesContainer" class="expenses-grid"></div>
+      </section>
+    </main>
+
+    <!-- ================================================================== -->
+    <!-- PÁGINA INTERNA: DÍVIDAS DO MÊS                                     -->
+    <!-- ================================================================== -->
+    <main id="pageDebts" class="main-body" style="display: none;">
+      <div class="section-header" style="margin-bottom: 4px;">
+        <h2 class="section-title">Gerenciar Dívidas</h2>
+        <button type="button" class="pay-pill-btn" id="tabAddDebtBtn">+ Nova Dívida</button>
+      </div>
+
+      <div id="debtStatusFilterRow" class="filter-chips-row">
+        <button type="button" class="filter-chip active" data-status="all">Todas</button>
+        <button type="button" class="filter-chip" data-status="pending">Pendentes</button>
+        <button type="button" class="filter-chip" data-status="paid">Pagas</button>
+      </div>
+
+      <div id="debtTagFilterRow" class="filter-chips-row"></div>
+
+      <div id="tabDebtsListContainer" class="debts-list"></div>
+    </main>
+
+    <!-- ================================================================== -->
+    <!-- PÁGINA INTERNA: GASTOS & ENTRADAS EXTRAS                           -->
+    <!-- ================================================================== -->
+    <main id="pageExpenses" class="main-body" style="display: none;">
+      <div class="section-header" style="margin-bottom: 4px;">
+        <h2 class="section-title">Movimentações Rápidas</h2>
+        <div style="display: flex; gap: 6px;">
+          <button type="button" class="pay-pill-btn" id="tabAddExpenseBtn">+ Gasto</button>
+          <button type="button" class="pay-pill-btn" style="background: #15803D;" id="tabAddIncomeBtn">+ Entrada</button>
+        </div>
+      </div>
+
+      <div id="expenseTagFilterRow" class="filter-chips-row"></div>
+
+      <div id="tabExtraIncomesSection" style="display: none;">
+        <p style="font-size: 12px; font-weight: 600; color: #71717A; margin-bottom: 8px; text-transform: uppercase;">
+          Entradas Extras
+        </p>
+        <div id="tabExtraIncomesContainer" class="debts-list"></div>
+      </div>
+
+      <div>
+        <p style="font-size: 12px; font-weight: 600; color: #71717A; margin-bottom: 8px; text-transform: uppercase;">
+          Gastos Avulsos
+        </p>
+        <div id="tabExpensesGridContainer" class="expenses-grid"></div>
+      </div>
+    </main>
+
+    <!-- ================================================================== -->
+    <!-- PÁGINA INTERNA DEDICADA: RELATÓRIOS                                -->
+    <!-- ================================================================== -->
+    <main id="pageReports" class="main-body" style="display: none;">
+      <!-- NOVO RELATÓRIO: GASTOS COM GASOLINA NO MÊS -->
+      <section class="report-card" id="repFuelCard">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+            <div style="width:44px;height:44px;border-radius:9999px;background:#EEF2FF;color:#1E1B4B;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="22" x2="15" y2="22" />
+                <line x1="4" y1="9" x2="14" y2="9" />
+                <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18" />
+                <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2 2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5" />
+              </svg>
+            </div>
+            <div style="min-width:0;">
+              <div style="font-size:14px;font-weight:600;color:#1A1A1A;">Gasto Total com Gasolina</div>
+              <div id="repFuelCountText" style="font-size:12px;color:#71717A;margin-top:2px;">0 abastecimentos no mês</div>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <strong id="repFuelTotalVal" style="font-size:18px;font-weight:700;color:#1E1B4B;">R$ 0,00</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- 1. Termômetro de Sobra Real do Mês -->
+      <section class="report-card">
+        <div class="report-card-title">
+          <span>1. Termômetro de Sobra Real do Mês</span>
+        </div>
+        <p class="report-card-sub">Visão consolidada do que já saiu, do que falta pagar e da sobra garantida.</p>
+        <div class="thermometer-grid">
+          <div class="thermometer-col">
+            <span class="thermometer-label">Já saiu da conta</span>
+            <div id="repAlreadyOutVal" class="thermometer-val">R$ 0,00</div>
+          </div>
+          <div class="thermometer-col">
+            <span class="thermometer-label">Falta pagar no mês</span>
+            <div id="repPendingDebtsVal" class="thermometer-val" style="color:#C2410C;">R$ 0,00</div>
+          </div>
+          <div class="thermometer-col" style="background:#EEF2FF;border-color:#C7D2FE;">
+            <span class="thermometer-label" style="color:#1E1B4B;">Sobra Real Garantida</span>
+            <div id="repGuaranteedLeftVal" class="thermometer-val" style="color:#1E1B4B;">R$ 0,00</div>
+          </div>
+        </div>
+        <div class="report-row-head">
+          <span>Comprometimento Total da Renda</span>
+          <span id="repCommittedPctText">0%</span>
+        </div>
+        <div class="bar-track">
+          <div id="repCommittedBar" class="bar-fill-cherry" style="width: 0%;"></div>
+        </div>
+      </section>
+
+      <!-- 2. Ranking de Gastos por TAG -->
+      <section class="report-card">
+        <div class="report-card-title">
+          <span>2. Ranking de Gastos por TAG</span>
+        </div>
+        <p class="report-card-sub">Tags que mais consumiram recursos no mês e proporção sobre a renda total.</p>
+        <div id="repTagRankingContainer"></div>
+      </section>
+
+      <!-- 3. Radar de Vencimentos e Progresso de Quitação -->
+      <section class="report-card">
+        <div class="report-card-title">
+          <span>3. Radar de Vencimentos e Quitação</span>
+        </div>
+        <p class="report-card-sub">Progresso das dívidas do mês e contas que vencem nos próximos 7 dias.</p>
+        <div class="report-row-head">
+          <span>Progresso de Quitação</span>
+          <span id="repDebtQuitText">0 de 0 quitadas - 0%</span>
+        </div>
+        <div class="bar-track" style="margin-bottom: 14px;">
+          <div id="repDebtQuitBar" class="bar-fill-cherry" style="width: 0%;"></div>
+        </div>
+        <div style="background:#F8F9FA;border:1px solid #ECEEF2;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#1A1A1A;">Vencendo nos próximos 7 dias</div>
+            <div id="repNext7DaysCount" style="font-size:11px;color:#71717A;">0 contas próximas do vencimento</div>
+          </div>
+          <strong id="repNext7DaysTotal" style="font-size:14px;color:#1E1B4B;">R$ 0,00</strong>
+        </div>
+      </section>
+
+      <!-- 4. Raio-X: Custo Fixo (Dívidas) vs. Gastos do Dia a Dia -->
+      <section class="report-card">
+        <div class="report-card-title">
+          <span>4. Raio-X: Custo Fixo vs. Dia a Dia</span>
+        </div>
+        <p class="report-card-sub">Comparativo entre Dívidas cadastradas e Gastos avulsos em relação à renda.</p>
+
+        <div class="report-row-item">
+          <div class="report-row-head">
+            <span>Custo Fixo (Dívidas)</span>
+            <span id="repFixedCostText">R$ 0,00 (0%)</span>
+          </div>
+          <div class="bar-track">
+            <div id="repFixedCostBar" class="bar-fill-cherry" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="report-row-item">
+          <div class="report-row-head">
+            <span>Gastos do Dia a Dia (Avulsos)</span>
+            <span id="repDailyCostText">R$ 0,00 (0%)</span>
+          </div>
+          <div class="bar-track">
+            <div id="repDailyCostBar" class="bar-fill-neutral" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div id="repFixedCostAlert" class="report-alert-box"></div>
+      </section>
+
+      <!-- 5. Resumo de Entradas -->
+      <section class="report-card">
+        <div class="report-card-title">
+          <span>5. Resumo de Entradas</span>
+        </div>
+        <p class="report-card-sub">Divisão entre Salário Base e Entradas Extras agrupadas por Tag.</p>
+        <div id="repIncomesSummaryContainer"></div>
+      </section>
+
+      <!-- 6. Fim dos Parcelamentos (Dívidas Parceladas) -->
+      <section class="report-card">
+        <div class="report-card-title">
+          <span>6. Fim dos Parcelamentos</span>
+        </div>
+        <p class="report-card-sub">Compras parceladas ativas, valor total ainda comprometido nos próximos meses e mês/ano de encerramento.</p>
+        <div id="repInstallmentsSummaryContainer"></div>
+      </section>
+    </main>
+
+    <!-- ================================================================== -->
+    <!-- PÁGINA INTERNA DEDICADA: METAS POR TAG                             -->
+    <!-- ================================================================== -->
+    <main id="pageGoals" class="main-body" style="display: none;">
+      <section class="report-card">
+        <h2 class="section-title" style="margin-bottom: 6px;">Definir Limite por Tag</h2>
+        <p class="report-card-sub">Crie ou atualize um teto de gastos para acompanhar suas Tags.</p>
+        <form id="formAddGoal">
+          <div class="form-row-2">
+            <input type="text" required id="inputGoalTag" class="form-input" placeholder="Tag (ex: Supermercado)" />
+            <input type="number" step="0.01" min="1" required id="inputGoalLimit" class="form-input" placeholder="Limite R$" />
+          </div>
+          <div style="margin-top: 10px;">
+            <button type="submit" class="btn-primary" style="width: 100%;">Salvar Meta da Tag</button>
+          </div>
+        </form>
+      </section>
+
+      <section>
+        <div class="section-header">
+          <h2 class="section-title">Limites Acompanhados</h2>
+        </div>
+        <div id="goalsListContainer"></div>
+      </section>
+    </main>
+
+    <!-- ================================================================== -->
+    <!-- PÁGINA INTERNA DEDICADA: HISTÓRICO COMPLETO                        -->
+    <!-- ================================================================== -->
+    <main id="pageHistory" class="main-body" style="display: none;">
+      <div>
+        <p style="font-size: 12px; color: #71717A; margin-bottom: 8px;">Filtrar movimentações por TAG:</p>
+        <div id="historyTagFilterRow" class="filter-chips-row"></div>
+      </div>
+      <div id="historyListContainer"></div>
+    </main>
+
+    <!-- ================================================================== -->
+    <!-- SEÇÃO 5: BARRA DE NAVEGAÇÃO INFERIOR (AZUL CEREJA)                 -->
+    <!-- ================================================================== -->
+    <nav class="bottom-tab-bar">
+      <div class="bottom-tab-inner">
+        <button type="button" class="tab-btn active" data-tab="home" id="navTabHome">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1V9.5z" />
+          </svg>
+          <span>Início</span>
+        </button>
+
+        <button type="button" class="tab-btn" data-tab="debts" id="navTabDebts">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="3" width="14" height="18" rx="2" />
+            <line x1="9" y1="8" x2="15" y2="8" />
+            <line x1="9" y1="12" x2="15" y2="12" />
+            <line x1="9" y1="16" x2="13" y2="16" />
+          </svg>
+          <span>Dívidas</span>
+        </button>
+
+        <button type="button" class="tab-btn" data-tab="expenses" id="navTabExpenses">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <path d="M16 12h2" />
+            <line x1="2" y1="9" x2="22" y2="9" />
+          </svg>
+          <span>Gastos</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL 1: CONFIRMAÇÃO DE ALTERAÇÃO DE SALÁRIO (ETAPA 1 OBRIGATÓRIA)   -->
+  <!-- ==================================================================== -->
+  <div id="modalConfirmSalary" class="modal-backdrop">
+    <div class="modal-box" style="text-align: center;">
+      <div style="width: 48px; height: 48px; border-radius: 999px; background: #EEF2FF; color: #1E1B4B; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; font-weight: 700;">
+        R$
+      </div>
+      <h3 class="modal-title">Deseja alterar o seu salário atual?</h3>
+      <p class="modal-subtitle">
+        Salário base configurado: <strong id="confirmCurrentSalaryText">R$ 0,00</strong>
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" data-close-modal>Cancelar</button>
+        <button type="button" class="btn-primary" id="btnConfirmSalaryYes">Sim, alterar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL 2: INPUT DO NOVO SALÁRIO BASE (ETAPA 2 OBRIGATÓRIA)            -->
+  <!-- ==================================================================== -->
+  <div id="modalEditSalary" class="modal-backdrop">
+    <div class="modal-box">
+      <h3 class="modal-title">Alterar Salário Base</h3>
+      <p class="modal-subtitle">
+        Informe o novo valor do seu salário base. O Saldo Atual Disponível será recalculado imediatamente.
+      </p>
+      <form id="formEditSalary">
+        <div class="form-group">
+          <label class="form-label">Novo Salário Base (R$)</label>
+          <input type="number" step="0.01" min="0" required id="inputNewSalary" class="form-input" placeholder="5000.00" />
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-close-modal>Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar Salário</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL: NOVA DÍVIDA ("Pagar conta")                                   -->
+  <!-- ==================================================================== -->
+  <div id="modalNewDebt" class="modal-backdrop">
+    <div class="modal-box">
+      <h3 class="modal-title">Nova Dívida</h3>
+      <p class="modal-subtitle">Cadastre uma conta ou dívida com data de vencimento e TAG.</p>
+      <form id="formNewDebt">
+        <div class="form-group">
+          <label class="form-label">Descrição</label>
+          <input type="text" required id="inputDebtDesc" class="form-input" placeholder="Ex: Internet, Energia, Condomínio..." />
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">Valor (R$)</label>
+            <input type="number" step="0.01" min="0.01" required id="inputDebtAmount" class="form-input" placeholder="120.00" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Vencimento</label>
+            <input type="date" required id="inputDebtDueDate" class="form-input" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Escolha de Ícone</label>
+          <div class="icon-picker-grid" id="debtIconPicker">
+            <button type="button" class="icon-pick-btn selected" data-icon="wifi">Wi-Fi</button>
+            <button type="button" class="icon-pick-btn" data-icon="home">Casa</button>
+            <button type="button" class="icon-pick-btn" data-icon="card">Cartão</button>
+            <button type="button" class="icon-pick-btn" data-icon="other">Outros</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">TAG Personalizada</label>
+          <input type="text" required id="inputDebtTag" class="form-input" value="Casa" placeholder="Ex: Casa, Moradia, Cartão..." />
+          <div class="tag-suggestions">
+            <button type="button" class="tag-sug-btn" data-target="inputDebtTag" data-val="Casa">#Casa</button>
+            <button type="button" class="tag-sug-btn" data-target="inputDebtTag" data-val="Moradia">#Moradia</button>
+            <button type="button" class="tag-sug-btn" data-target="inputDebtTag" data-val="Cartão">#Cartão</button>
+            <button type="button" class="tag-sug-btn" data-target="inputDebtTag" data-val="Fixas">#Fixas</button>
+          </div>
+        </div>
+
+        <!-- Controle de Parcelas / Tempo de Vida da Dívida -->
+        <div class="form-group" style="background:#F8F9FA;border:1px solid #E4E4E7;border-radius:12px;padding:12px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:#1A1A1A;user-select:none;">
+            <input type="checkbox" id="inputDebtIsInstallment" style="width:16px;height:16px;accent-color:#1E1B4B;cursor:pointer;" />
+            <span>É uma dívida parcelada / com tempo de vida?</span>
+          </label>
+
+          <div id="debtInstallmentsFieldsRow" class="form-row-2" style="display:none;margin-top:12px;">
+            <div>
+              <label class="form-label" style="font-size:11px;">Parcela Atual</label>
+              <input type="number" min="1" max="360" id="inputDebtCurrentInstallment" class="form-input" value="1" placeholder="Ex: 3" style="background:#FFFFFF;" />
+            </div>
+            <div>
+              <label class="form-label" style="font-size:11px;">Total de Parcelas</label>
+              <input type="number" min="2" max="360" id="inputDebtTotalInstallments" class="form-input" value="10" placeholder="Ex: 10" style="background:#FFFFFF;" />
+            </div>
+          </div>
+
+          <p id="debtSingleInstallmentHint" style="font-size:11px;color:#71717A;margin-top:6px;">
+            Conta fixa contínua (ex: Aluguel, Internet) ou parcela única (<code>total_installments = 1</code>).
+          </p>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-close-modal>Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar Dívida</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL: NOVO GASTO OU NOVA ENTRADA EXTRA ("Novo gasto")               -->
+  <!-- ==================================================================== -->
+  <div id="modalExpenseOrIncome" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="mode-switcher">
+        <button type="button" class="mode-switch-btn active" id="switchModeExpense">Novo Gasto</button>
+        <button type="button" class="mode-switch-btn" id="switchModeIncome">Nova Entrada Extra</button>
+      </div>
+
+      <!-- Formulário Novo Gasto -->
+      <form id="formNewExpense">
+        <h3 class="modal-title">Lançar Novo Gasto</h3>
+        <div class="form-group">
+          <label class="form-label">Descrição</label>
+          <input type="text" required id="inputExpenseDesc" class="form-input" placeholder="Ex: Supermercado, Uber, Farmácia..." />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Valor (R$)</label>
+          <input type="number" step="0.01" min="0.01" required id="inputExpenseAmount" class="form-input" placeholder="150.00" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Escolha de Ícone / Categoria</label>
+          <div class="icon-picker-grid" id="expenseIconPicker">
+            <button type="button" class="icon-pick-btn selected" data-icon="cart" data-default-tag="Supermercado">Carrinho</button>
+            <button type="button" class="icon-pick-btn" data-icon="moto" data-default-tag="Moto">Moto</button>
+            <button type="button" class="icon-pick-btn" data-icon="food" data-default-tag="Alimentação">Alimentação</button>
+            <button type="button" class="icon-pick-btn" data-icon="other" data-default-tag="Outros">Outros</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">TAG Personalizada</label>
+          <input type="text" required id="inputExpenseTag" class="form-input" value="Supermercado" placeholder="Ex: Supermercado, Moto, Gasolina..." />
+          <div class="tag-suggestions">
+            <button type="button" class="tag-sug-btn" data-target="inputExpenseTag" data-val="Supermercado">#Supermercado</button>
+            <button type="button" class="tag-sug-btn" data-target="inputExpenseTag" data-val="Moto">#Moto</button>
+            <button type="button" class="tag-sug-btn" data-target="inputExpenseTag" data-val="Gasolina">#Gasolina</button>
+            <button type="button" class="tag-sug-btn" data-target="inputExpenseTag" data-val="Alimentação">#Alimentação</button>
+            <button type="button" class="tag-sug-btn" data-target="inputExpenseTag" data-val="Lazer">#Lazer</button>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-close-modal>Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar Gasto</button>
+        </div>
+      </form>
+
+      <!-- Formulário Nova Entrada Extra -->
+      <form id="formNewIncome" style="display: none;">
+        <h3 class="modal-title">Nova Entrada Extra</h3>
+        <p class="modal-subtitle">Soma ao total disponível sem apagar o salário base.</p>
+        <div class="form-group">
+          <label class="form-label">Descrição</label>
+          <input type="text" required id="inputIncomeDesc" class="form-input" placeholder="Ex: Freelance, Pix recebido..." />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Valor (R$)</label>
+          <input type="number" step="0.01" min="0.01" required id="inputIncomeAmount" class="form-input" placeholder="300.00" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">TAG Personalizada</label>
+          <input type="text" required id="inputIncomeTag" class="form-input" value="Extra" placeholder="Ex: Extra, Freelance, Pix..." />
+          <div class="tag-suggestions">
+            <button type="button" class="tag-sug-btn" data-target="inputIncomeTag" data-val="Extra">#Extra</button>
+            <button type="button" class="tag-sug-btn" data-target="inputIncomeTag" data-val="Freelance">#Freelance</button>
+            <button type="button" class="tag-sug-btn" data-target="inputIncomeTag" data-val="Pix">#Pix</button>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-close-modal>Cancelar</button>
+          <button type="submit" class="btn-primary">Somar Entrada</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL: CONFIGURAR SUPABASE (OPCIONAL)                                -->
+  <!-- ==================================================================== -->
+  <div id="modalSupabaseConfig" class="modal-backdrop">
+    <div class="modal-box">
+      <h3 class="modal-title">Conexão Supabase</h3>
+      <p class="modal-subtitle">
+        Conecte usando <code>NEXT_PUBLIC_SUPABASE_URL</code> e <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>. Sem variáveis preenchidas, o app funciona 100% com estado local.
+      </p>
+      <form id="formSupabaseConfig">
+        <div class="form-group">
+          <label class="form-label">NEXT_PUBLIC_SUPABASE_URL</label>
+          <input type="url" id="inputSbUrl" class="form-input" placeholder="https://yjprrjczrhulkkdqsrrb.supabase.co" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY / ANON_KEY</label>
+          <input type="text" id="inputSbKey" class="form-input" placeholder="sb_publishable_..." />
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-close-modal>Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar e Conectar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // CREDENCIAIS SUPABASE PRÉ-CONFIGURADAS (COMPATÍVEL NEXT.JS / VITE / PWA)
+    // =========================================================================
+    const DEFAULT_SUPABASE_URL = 'https://yjprrjczrhulkkdqsrrb.supabase.co';
+    const DEFAULT_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_cN20WkbMnqUuWdXdZY3vIw_0C7wwV8X';
+    const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_cN20WkbMnqUuWdXdZY3vIw_0C7wwV8X';
+
+    window.__ENV__ = Object.assign({
+      NEXT_PUBLIC_SUPABASE_URL: DEFAULT_SUPABASE_URL,
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: DEFAULT_SUPABASE_PUBLISHABLE_KEY,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: DEFAULT_SUPABASE_ANON_KEY,
+      VITE_SUPABASE_URL: DEFAULT_SUPABASE_URL,
+      VITE_SUPABASE_PUBLISHABLE_KEY: DEFAULT_SUPABASE_PUBLISHABLE_KEY,
+      VITE_SUPABASE_ANON_KEY: DEFAULT_SUPABASE_ANON_KEY,
+    }, window.__ENV__ || {});
+
+    // =========================================================================
+    // UTILITÁRIOS DE DATA E MOEDA
+    // =========================================================================
+    function getCurrentMonthYear() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      return `${y}-${m}`;
+    }
+
+    function getOffsetDateString(daysOffset) {
+      const now = new Date();
+      const target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysOffset);
+      const y = target.getFullYear();
+      const m = String(target.getMonth() + 1).padStart(2, '0');
+      const d = String(target.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function formatBRL(val, show = true) {
+      if (!show) return 'R$ ••••';
+      return Number(val || 0).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
+
+    function getDaysUntilDue(dueDateStr) {
+      if (!dueDateStr) return null;
+      const parts = dueDateStr.split('-').map(Number);
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const due = new Date(parts[0], (parts[1] || 1) - 1, parts[2] || 1);
+      return Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    }
+
+    function calculateDueStatus(dueDateStr, paid) {
+      if (paid) {
+        return {
+          label: 'Pago ✓',
+          bg: '#DCFCE7',
+          text: '#15803D',
+          border: '#BBF7D0',
+        };
+      }
+      const diffDays = getDaysUntilDue(dueDateStr);
+      if (diffDays === null) {
+        return {
+          label: 'Pendente',
+          bg: '#FFEDD5',
+          text: '#C2410C',
+          border: '#FED7AA',
+        };
+      }
+      if (diffDays < 0) {
+        return {
+          label: 'Atrasado',
+          bg: '#FEE2E2',
+          text: '#B91C1C',
+          border: '#FECACA',
+        };
+      }
+      if (diffDays === 0) {
+        return {
+          label: 'Vence hoje',
+          bg: '#FEF9C3',
+          text: '#A16207',
+          border: '#FDE68A',
+        };
+      }
+      if (diffDays === 1) {
+        return {
+          label: 'Vence amanhã',
+          bg: '#FEF9C3',
+          text: '#A16207',
+          border: '#FDE68A',
+        };
+      }
+      return {
+        label: `Vence em ${diffDays} dias`,
+        bg: '#FFEDD5',
+        text: '#C2410C',
+        border: '#FED7AA',
+      };
+    }
+
+    const PT_MONTHS_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+    function calculateInstallmentInfo(dueDateStr, paid, currentInstallment, totalInstallments) {
+      const total = Math.max(1, Number(totalInstallments || 1));
+      const current = Math.max(1, Math.min(total, Number(currentInstallment || 1)));
+      const isInstallment = total > 1;
+
+      // Quantas faltam:
+      // - se paid = true: total_installments - current_installment
+      // - se paid = false: total_installments - current_installment + 1
+      const remaining = paid
+        ? Math.max(0, total - current)
+        : Math.max(0, total - current + 1);
+
+      const paidCount = paid ? current : Math.max(0, current - 1);
+      const progressPct = total > 0 ? Math.min(100, Math.round((paidCount / total) * 100)) : 0;
+      const isLastInstallmentPaid = isInstallment && current >= total && paid;
+
+      let baseYear;
+      let baseMonthIndex;
+      if (dueDateStr && dueDateStr.includes('-')) {
+        const parts = dueDateStr.split('-').map(Number);
+        baseYear = parts[0] || new Date().getFullYear();
+        baseMonthIndex = (parts[1] || 1) - 1;
+      } else {
+        const now = new Date();
+        baseYear = now.getFullYear();
+        baseMonthIndex = now.getMonth();
+      }
+
+      const monthsToAdd = Math.max(0, total - current);
+      const endDate = new Date(baseYear, baseMonthIndex + monthsToAdd, 1);
+      const endMonthYear = `${PT_MONTHS_SHORT[endDate.getMonth()]}/${endDate.getFullYear()}`;
+
+      return {
+        isInstallment,
+        current,
+        total,
+        remaining,
+        paidCount,
+        progressPct,
+        isLastInstallmentPaid,
+        endMonthYear,
+      };
+    }
+
+    function normalizeTextNoAccents(value) {
+      return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+    }
+
+    function isFuelTransaction(tx, targetMonthYear = getCurrentMonthYear()) {
+      if (tx.month_year && tx.month_year !== targetMonthYear) {
+        return false;
+      }
+      const tagNorm = normalizeTextNoAccents(tx.tag);
+      const titleNorm = normalizeTextNoAccents(tx.title || tx.description);
+      return (
+        tagNorm.includes('gasolina') ||
+        tagNorm.includes('combustivel') ||
+        titleNorm.includes('gasolina') ||
+        titleNorm.includes('combustivel')
+      );
+    }
+
+    function formatTransactionDateBR(dueDateStr, createdAtStr) {
+      if (dueDateStr && /^\d{4}-\d{2}-\d{2}/.test(dueDateStr)) {
+        const [year, month, day] = dueDateStr.slice(0, 10).split('-');
+        return `${day}/${month}/${year}`;
+      }
+      if (createdAtStr) {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(createdAtStr)) {
+          const [year, month, day] = createdAtStr.split('-');
+          return `${day}/${month}/${year}`;
+        }
+        const parsed = new Date(createdAtStr);
+        if (!isNaN(parsed.getTime())) {
+          const d = String(parsed.getDate()).padStart(2, '0');
+          const m = String(parsed.getMonth() + 1).padStart(2, '0');
+          const y = parsed.getFullYear();
+          return `${d}/${m}/${y}`;
+        }
+      }
+      const now = new Date();
+      return `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    }
+
+    function getTransactionSortTimestamp(dueDateStr, createdAtStr) {
+      if (dueDateStr && /^\d{4}-\d{2}-\d{2}/.test(dueDateStr)) {
+        const [year, month, day] = dueDateStr.slice(0, 10).split('-').map(Number);
+        const dueTime = new Date(year, (month || 1) - 1, day || 1, 12, 0, 0).getTime();
+        if (!isNaN(dueTime)) return dueTime;
+      }
+      if (createdAtStr) {
+        const createdTime = new Date(createdAtStr).getTime();
+        if (!isNaN(createdTime)) return createdTime;
+      }
+      return 0;
+    }
+
+    // =========================================================================
+    // ZERO DADOS AUTOMÁTICOS (INICIALIZAÇÃO 100% LIMPA)
+    // =========================================================================
+    let state = {
+      incomes: [],
+      transactions: [],
+      goals: [],
+      showValues: true,
+      activePage: 'home', // 'home' | 'debts' | 'expenses' | 'reports' | 'goals' | 'history'
+      debtStatusFilter: 'all',
+      debtTagFilter: 'Todas',
+      expenseTagFilter: 'Todas',
+      historyTagFilter: 'Todas',
+      selectedDebtIcon: 'wifi',
+      selectedExpenseIcon: 'cart',
+      fuelAccordionOpen: false,
+      supabaseClient: null,
+      usingSupabase: false,
+    };
+
+    const LS_INCOMES = 'financas_pwa_incomes_v4_zero_seed';
+    const LS_TX = 'financas_pwa_transactions_v4_zero_seed';
+    const LS_GOALS = 'financas_pwa_goals_v4_zero_seed';
+    const LS_SB_URL = 'NEXT_PUBLIC_SUPABASE_URL';
+    const LS_SB_KEY = 'NEXT_PUBLIC_SUPABASE_ANON_KEY';
+
+    function saveLocalState() {
+      try {
+        localStorage.setItem(LS_INCOMES, JSON.stringify(state.incomes));
+        localStorage.setItem(LS_TX, JSON.stringify(state.transactions));
+        localStorage.setItem(LS_GOALS, JSON.stringify(state.goals));
+      } catch (e) {}
+    }
+
+    function loadLocalState() {
+      try {
+        localStorage.removeItem('financas_pwa_incomes_v1');
+        localStorage.removeItem('financas_pwa_transactions_v1');
+        localStorage.removeItem('financas_pwa_goals_v1');
+        localStorage.removeItem('financas_pwa_incomes_v2_clean');
+        localStorage.removeItem('financas_pwa_transactions_v2_clean');
+        localStorage.removeItem('financas_pwa_incomes_v3_supabase');
+        localStorage.removeItem('financas_pwa_transactions_v3_supabase');
+        localStorage.removeItem('financas_pwa_incomes_v3_sb');
+        localStorage.removeItem('financas_pwa_transactions_v3_sb');
+
+        const inc = JSON.parse(localStorage.getItem(LS_INCOMES) || 'null');
+        const tx = JSON.parse(localStorage.getItem(LS_TX) || 'null');
+        const gl = JSON.parse(localStorage.getItem(LS_GOALS) || 'null');
+        if (Array.isArray(inc)) state.incomes = inc;
+        if (Array.isArray(tx)) state.transactions = tx;
+        if (Array.isArray(gl)) state.goals = gl;
+      } catch (e) {}
+    }
+
+    async function initSupabase() {
+      const envUrl =
+        localStorage.getItem(LS_SB_URL) ||
+        (window.__ENV__ && (window.__ENV__.NEXT_PUBLIC_SUPABASE_URL || window.__ENV__.VITE_SUPABASE_URL)) ||
+        DEFAULT_SUPABASE_URL;
+      const envKey =
+        localStorage.getItem(LS_SB_KEY) ||
+        (window.__ENV__ && (
+          window.__ENV__.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+          window.__ENV__.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+          window.__ENV__.VITE_SUPABASE_PUBLISHABLE_KEY ||
+          window.__ENV__.VITE_SUPABASE_ANON_KEY
+        )) ||
+        DEFAULT_SUPABASE_PUBLISHABLE_KEY;
+
+      const currentMonthYear = getCurrentMonthYear();
+
+      if (envUrl && envKey && window.supabase && typeof window.supabase.createClient === 'function') {
+        try {
+          state.supabaseClient = window.supabase.createClient(envUrl, envKey);
+
+          // Leitura inicial filtrando pelo month_year atual (ZERO seed automático)
+          const [incRes, txRes] = await Promise.all([
+            state.supabaseClient
+              .from('incomes')
+              .select('*')
+              .eq('month_year', currentMonthYear)
+              .order('created_at', { ascending: true }),
+            state.supabaseClient
+              .from('transactions')
+              .select('*')
+              .eq('month_year', currentMonthYear)
+              .order('created_at', { ascending: false }),
+          ]);
+
+          if (!incRes.error && !txRes.error) {
+            state.usingSupabase = true;
+            state.incomes = (incRes.data || []).map(r => ({
+              ...r,
+              title: r.title || r.description || 'Entrada',
+              amount: Number(r.amount),
+            }));
+            state.transactions = (txRes.data || []).map(r => ({
+              ...r,
+              title: r.title || r.description || r.tag || 'Transação',
+              amount: Number(r.amount),
+              total_installments: Math.max(1, Number(r.total_installments || 1)),
+              current_installment: Math.max(1, Number(r.current_installment || 1)),
+            }));
+            saveLocalState();
+          }
+        } catch (err) {
+          state.usingSupabase = false;
+        }
+      }
+      renderAll();
+    }
+
+    // =========================================================================
+    // NAVEGAÇÃO ENTRE PÁGINAS E REGRA ESTRITA DO CABEÇALHO
+    // =========================================================================
+    const PAGE_TITLES = {
+      debts: 'Minhas Dívidas',
+      expenses: 'Gastos & Entradas',
+      reports: 'Relatórios Financeiros',
+      goals: 'Metas por Tag',
+      history: 'Histórico Completo',
+    };
+
+    function navigateToPage(pageName) {
+      state.activePage = pageName;
+
+      // Regra: Cabeçalho do Salário EXCLUSIVO na tela "Início" ('home')
+      const homeHeader = document.getElementById('homeSalaryHeader');
+      const internalHeader = document.getElementById('internalCompactHeader');
+
+      if (pageName === 'home') {
+        homeHeader.style.display = 'block';
+        internalHeader.style.display = 'none';
+      } else {
+        homeHeader.style.display = 'none';
+        internalHeader.style.display = 'flex';
+        document.getElementById('internalHeaderTitle').textContent = PAGE_TITLES[pageName] || 'Página';
+      }
+
+      // Mostrar apenas a página ativa
+      document.getElementById('pageHome').style.display = pageName === 'home' ? 'flex' : 'none';
+      document.getElementById('pageDebts').style.display = pageName === 'debts' ? 'flex' : 'none';
+      document.getElementById('pageExpenses').style.display = pageName === 'expenses' ? 'flex' : 'none';
+      document.getElementById('pageReports').style.display = pageName === 'reports' ? 'flex' : 'none';
+      document.getElementById('pageGoals').style.display = pageName === 'goals' ? 'flex' : 'none';
+      document.getElementById('pageHistory').style.display = pageName === 'history' ? 'flex' : 'none';
+
+      // Atualizar estado ativo na Bottom Tab Bar
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-tab') === pageName);
+      });
+
+      renderAll();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // =========================================================================
+    // ÍCONES SVG
+    // =========================================================================
+    function getDebtIconHTML(icon) {
+      if (icon === 'wifi') {
+        return `<div class="debt-icon-circle" style="background:#F3E8FF;color:#7C3AED;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>
+          </svg>
+        </div>`;
+      }
+      if (icon === 'home') {
+        return `<div class="debt-icon-circle" style="background:#DCFCE7;color:#15803D;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1V9.5z"/>
+          </svg>
+        </div>`;
+      }
+      if (icon === 'card') {
+        return `<div class="debt-icon-circle" style="background:#FFEDD5;color:#EA580C;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+          </svg>
+        </div>`;
+      }
+      return `<div class="debt-icon-circle" style="background:#EEF2FF;color:#1E1B4B;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+        </svg>
+      </div>`;
+    }
+
+    function getExpenseIconHTML(icon) {
+      if (icon === 'cart') {
+        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>`;
+      }
+      if (icon === 'moto' || icon === 'car') {
+        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6h2l1.5 11.5"/><path d="M5.5 17.5L8.5 11h5.5l2 3.5H9"/><path d="M8.5 11L7 8h3"/>
+        </svg>`;
+      }
+      if (icon === 'food') {
+        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
+        </svg>`;
+      }
+      return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+      </svg>`;
+    }
+
+    function getEyeIconSVG(open) {
+      if (open) {
+        return `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>`;
+      }
+      return `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>
+      </svg>`;
+    }
+
+    function getTrashIconSVG() {
+      return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+      </svg>`;
+    }
+
+    function getUndoIconSVG() {
+      return `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+      </svg>`;
+    }
+
+    // =========================================================================
+    // RENDERIZAÇÃO COMPLETA DA INTERFACE + OS 5 RELATÓRIOS
+    // =========================================================================
+    function getBaseSalary() {
+      const base = state.incomes.find(i => i.is_base_salary);
+      return base ? Number(base.amount) : 0;
+    }
+
+    function getExtraIncomesTotal() {
+      return state.incomes
+        .filter(i => !i.is_base_salary)
+        .reduce((acc, i) => acc + Number(i.amount), 0);
+    }
+
+    function renderDebtCardHTML(debt) {
+      const status = calculateDueStatus(debt.due_date, debt.paid);
+      const instInfo = calculateInstallmentInfo(
+        debt.due_date,
+        debt.paid,
+        debt.current_installment,
+        debt.total_installments
+      );
+      const payButtonHTML = !debt.paid
+        ? `<button type="button" class="pay-pill-btn" data-pay-id="${debt.id}">Pagar</button>`
+        : `<button type="button" data-unpay-id="${debt.id}" title="Reverter pagamento desta dívida" style="padding:5px 10px;border-radius:999px;border:1px solid rgba(30,27,75,0.25);background:#FFFFFF;color:#1E1B4B;font-size:12px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;transition:background 0.15s ease;" onmouseover="this.style.background='#EEF2FF'" onmouseout="this.style.background='#FFFFFF'">${getUndoIconSVG()}<span>Desfazer</span></button>`;
+
+      let installmentSectionHTML = '';
+      if (instInfo.isInstallment) {
+        const remainingBadgeHTML = instInfo.isLastInstallmentPaid
+          ? `<span style="background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:600;">Última parcela paga / Dívida quitada 🎉</span>`
+          : `<span style="color:#52525B;font-size:11px;font-weight:500;">• ${instInfo.remaining === 1 ? 'Falta 1 parcela' : `Faltam ${instInfo.remaining} parcelas`}</span>`;
+
+        installmentSectionHTML = `
+          <div style="margin-top:10px;padding-top:9px;border-top:1px solid #F1F5F9;display:flex;flex-direction:column;gap:6px;width:100%;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <span style="background:#EEF2FF;color:#1E1B4B;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:600;">
+                  Parcela ${instInfo.current} de ${instInfo.total}
+                </span>
+                ${remainingBadgeHTML}
+              </div>
+              <span style="font-size:11px;color:#71717A;font-weight:500;">
+                Acaba em <strong style="color:#1A1A1A;">${instInfo.endMonthYear}</strong>
+              </span>
+            </div>
+            <div style="width:100%;height:6px;background:#E4E4E7;border-radius:999px;overflow:hidden;">
+              <div style="width:${instInfo.progressPct}%;height:100%;background:linear-gradient(90deg, #1E1B4B 0%, #2A1B4E 100%);border-radius:999px;transition:width 0.3s ease;"></div>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="debt-card" style="flex-direction:column;align-items:stretch;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;">
+            <div class="debt-left">
+              ${getDebtIconHTML(debt.icon)}
+              <div class="debt-info">
+                <div class="debt-title-row">
+                  <span class="debt-name">${debt.title || debt.description}</span>
+                  <span class="debt-tag-chip">#${debt.tag}</span>
+                </div>
+                <div class="debt-amount">${formatBRL(debt.amount, state.showValues)}</div>
+              </div>
+            </div>
+            <div class="debt-right">
+              <span class="due-badge" style="background:${status.bg};color:${status.text};border-color:${status.border};">
+                ${status.label}
+              </span>
+              ${payButtonHTML}
+              <button type="button" data-del-id="${debt.id}" title="Excluir dívida" style="background:none;border:none;color:#A1A1AA;cursor:pointer;padding:6px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;transition:color 0.15s;" onmouseover="this.style.color='#DC2626'" onmouseout="this.style.color='#A1A1AA'">
+                ${getTrashIconSVG()}
+              </button>
+            </div>
+          </div>
+          ${installmentSectionHTML}
+        </div>
+      `;
+    }
+
+    function renderExpenseCardHTML(exp) {
+      return `
+        <div class="expense-card" style="justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+            <div class="expense-icon-circle">
+              ${getExpenseIconHTML(exp.icon)}
+            </div>
+            <div class="expense-meta">
+              <div style="font-size:13px;font-weight:600;color:#1A1A1A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${exp.title || exp.description || exp.tag}</div>
+              <div class="expense-tag">#${exp.tag}</div>
+              <div class="expense-value">${formatBRL(exp.amount, state.showValues)}</div>
+            </div>
+          </div>
+          <button type="button" data-del-id="${exp.id}" title="Excluir gasto" style="background:none;border:none;color:#A1A1AA;cursor:pointer;padding:6px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0;transition:color 0.15s;" onmouseover="this.style.color='#DC2626'" onmouseout="this.style.color='#A1A1AA'">
+            ${getTrashIconSVG()}
+          </button>
+        </div>
+      `;
+    }
+
+    function renderReportsPage(baseSalary, extraTotal, totalSalary, debts, expenses) {
+      const paidDebtsTotal = debts.filter(d => d.paid).reduce((acc, d) => acc + Number(d.amount), 0);
+      const pendingDebtsTotal = debts.filter(d => !d.paid).reduce((acc, d) => acc + Number(d.amount), 0);
+      const allDebtsTotal = paidDebtsTotal + pendingDebtsTotal;
+      const expensesTotal = expenses.reduce((acc, e) => acc + Number(e.amount), 0);
+
+      // 0. Novo Relatório: Gastos com Gasolina no Mês
+      const currentMonthYear = getCurrentMonthYear();
+      const fuelTxList = state.transactions
+        .filter(tx => isFuelTransaction(tx, currentMonthYear))
+        .slice()
+        .sort((a, b) => {
+          const diff =
+            getTransactionSortTimestamp(b.due_date, b.created_at) -
+            getTransactionSortTimestamp(a.due_date, a.created_at);
+          if (diff !== 0) return diff;
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        });
+
+      const totalFuelSpent = fuelTxList.reduce((acc, item) => acc + Number(item.amount), 0);
+      const fuelCountEl = document.getElementById('repFuelCountText');
+      const fuelTotalEl = document.getElementById('repFuelTotalVal');
+      const fuelToggleLabelEl = document.getElementById('repFuelToggleLabel');
+      const fuelAccordionListEl = document.getElementById('repFuelAccordionList');
+
+      if (fuelCountEl) {
+        fuelCountEl.textContent = `${fuelTxList.length} ${fuelTxList.length === 1 ? 'abastecimento no mês' : 'abastecimentos no mês'}`;
+      }
+      if (fuelTotalEl) {
+        fuelTotalEl.textContent = formatBRL(totalFuelSpent, state.showValues);
+      }
+      if (fuelToggleLabelEl) {
+        fuelToggleLabelEl.textContent = state.fuelAccordionOpen
+          ? 'Ocultar abastecimentos ▴'
+          : 'Ver últimos abastecimentos ▾';
+      }
+      if (fuelAccordionListEl) {
+        fuelAccordionListEl.style.display = state.fuelAccordionOpen ? 'flex' : 'none';
+        if (fuelTxList.length === 0) {
+          fuelAccordionListEl.innerHTML = `<p style="font-size:12px;color:#71717A;text-align:center;padding:8px 0;">Nenhum abastecimento registrado neste mês.</p>`;
+        } else {
+          fuelAccordionListEl.innerHTML = fuelTxList
+            .map(tx => {
+              const dateBR = formatTransactionDateBR(tx.due_date, tx.created_at);
+              const titleText = tx.title || tx.description || tx.tag || 'Gasolina';
+              const tagText = tx.tag || 'Gasolina';
+              return `
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;background:#F8F9FA;border:1px solid #ECEEF2;">
+                  <div style="min-width:0;">
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                      <span style="font-size:12px;font-weight:600;color:#1A1A1A;">${titleText}</span>
+                      <span style="font-size:10px;padding:1px 6px;border-radius:6px;background:#FFFFFF;border:1px solid #E4E4E7;color:#52525B;font-weight:500;">#${tagText}</span>
+                    </div>
+                    <span style="display:block;font-size:11px;color:#71717A;margin-top:2px;">${dateBR}</span>
+                  </div>
+                  <strong style="font-size:12px;font-weight:700;color:#1E1B4B;flex-shrink:0;text-align:right;">
+                    ${formatBRL(tx.amount, state.showValues)}
+                  </strong>
+                </div>
+              `;
+            })
+            .join('');
+        }
+      }
+
+      // 1. Termômetro de Sobra Real do Mês
+      const alreadyOut = paidDebtsTotal + expensesTotal;
+      const guaranteedLeftover = totalSalary - (allDebtsTotal + expensesTotal);
+      const committedPct = totalSalary > 0
+        ? Math.min(100, Math.round(((allDebtsTotal + expensesTotal) / totalSalary) * 100))
+        : 0;
+
+      document.getElementById('repAlreadyOutVal').textContent = formatBRL(alreadyOut, state.showValues);
+      document.getElementById('repPendingDebtsVal').textContent = formatBRL(pendingDebtsTotal, state.showValues);
+      document.getElementById('repGuaranteedLeftVal').textContent = formatBRL(guaranteedLeftover, state.showValues);
+      document.getElementById('repCommittedPctText').textContent = `${committedPct}%`;
+      document.getElementById('repCommittedBar').style.width = `${committedPct}%`;
+
+      // 2. Ranking de Gastos por TAG
+      const tagTotalsMap = {};
+      state.transactions.forEach(t => {
+        const tag = t.tag || 'Geral';
+        tagTotalsMap[tag] = (tagTotalsMap[tag] || 0) + Number(t.amount);
+      });
+      const sortedTags = Object.entries(tagTotalsMap).sort((a, b) => b[1] - a[1]);
+      const rankingContainer = document.getElementById('repTagRankingContainer');
+
+      if (sortedTags.length === 0) {
+        rankingContainer.innerHTML = `<p style="font-size:12px;color:#71717A;text-align:center;padding:12px 0;">Nenhum gasto ou dívida registrado neste mês.</p>`;
+      } else {
+        rankingContainer.innerHTML = sortedTags
+          .map(([tag, val]) => {
+            const pctSalary = totalSalary > 0 ? Math.round((val / totalSalary) * 100) : 0;
+            const barWidth = Math.min(100, Math.max(4, pctSalary));
+            return `
+              <div class="report-row-item">
+                <div class="report-row-head">
+                  <span>#${tag}</span>
+                  <span>${formatBRL(val, state.showValues)} (${pctSalary}% da renda)</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill-cherry" style="width:${barWidth}%;"></div>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+      }
+
+      // 3. Radar de Vencimentos e Progresso de Quitação
+      const totalDebtsCount = debts.length;
+      const paidDebtsCount = debts.filter(d => d.paid).length;
+      const quitPct = totalDebtsCount > 0 ? Math.round((paidDebtsCount / totalDebtsCount) * 100) : 0;
+      document.getElementById('repDebtQuitText').textContent = `${paidDebtsCount} de ${totalDebtsCount} quitadas - ${quitPct}%`;
+      document.getElementById('repDebtQuitBar').style.width = `${quitPct}%`;
+
+      const dueNext7Days = debts.filter(d => {
+        if (d.paid) return false;
+        const diff = getDaysUntilDue(d.due_date);
+        return diff !== null && diff >= 0 && diff <= 7;
+      });
+      const dueNext7Total = dueNext7Days.reduce((acc, d) => acc + Number(d.amount), 0);
+      document.getElementById('repNext7DaysCount').textContent = `${dueNext7Days.length} conta(s) nos próximos 7 dias`;
+      document.getElementById('repNext7DaysTotal').textContent = formatBRL(dueNext7Total, state.showValues);
+
+      // 4. Raio-X: Custo Fixo (Dívidas) vs. Gastos do Dia a Dia
+      const fixedPctIncome = totalSalary > 0 ? Math.round((allDebtsTotal / totalSalary) * 100) : 0;
+      const dailyPctIncome = totalSalary > 0 ? Math.round((expensesTotal / totalSalary) * 100) : 0;
+
+      document.getElementById('repFixedCostText').textContent = `${formatBRL(allDebtsTotal, state.showValues)} (${fixedPctIncome}% da renda)`;
+      document.getElementById('repFixedCostBar').style.width = `${Math.min(100, fixedPctIncome)}%`;
+
+      document.getElementById('repDailyCostText').textContent = `${formatBRL(expensesTotal, state.showValues)} (${dailyPctIncome}% da renda)`;
+      document.getElementById('repDailyCostBar').style.width = `${Math.min(100, dailyPctIncome)}%`;
+
+      const alertEl = document.getElementById('repFixedCostAlert');
+      if (fixedPctIncome > 50) {
+        alertEl.style.background = '#FEE2E2';
+        alertEl.style.color = '#B91C1C';
+        alertEl.textContent = `Atenção: Seu custo fixo (${fixedPctIncome}%) ultrapassou o limite recomendado de 50% da renda.`;
+      } else {
+        alertEl.style.background = '#EEF2FF';
+        alertEl.style.color = '#1E1B4B';
+        alertEl.textContent = `Equilibrado: Seu custo fixo representa ${fixedPctIncome}% da sua renda (dentro do limite de 50%).`;
+      }
+
+      // 5. Resumo de Entradas
+      const extrasByTag = {};
+      state.incomes
+        .filter(i => !i.is_base_salary)
+        .forEach(i => {
+          const t = i.tag || 'Extra';
+          extrasByTag[t] = (extrasByTag[t] || 0) + Number(i.amount);
+        });
+
+      const basePct = totalSalary > 0 ? Math.round((baseSalary / totalSalary) * 100) : 100;
+      let incomesHTML = `
+        <div class="report-row-item">
+          <div class="report-row-head">
+            <span>Salário Base (#Salário)</span>
+            <span>${formatBRL(baseSalary, state.showValues)} (${basePct}%)</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill-cherry" style="width:${Math.min(100, basePct)}%;"></div>
+          </div>
+        </div>
+      `;
+
+      const extraEntries = Object.entries(extrasByTag);
+      if (extraEntries.length === 0) {
+        incomesHTML += `<p style="font-size:12px;color:#71717A;margin-top:8px;">Nenhuma entrada extra cadastrada neste mês.</p>`;
+      } else {
+        incomesHTML += extraEntries
+          .map(([tag, amount]) => {
+            const pct = totalSalary > 0 ? Math.round((amount / totalSalary) * 100) : 0;
+            return `
+              <div class="report-row-item">
+                <div class="report-row-head">
+                  <span>Entrada Extra (#${tag})</span>
+                  <span>+ ${formatBRL(amount, state.showValues)} (${pct}%)</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill-neutral" style="width:${Math.min(100, Math.max(4, pct))}%;"></div>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+      }
+      document.getElementById('repIncomesSummaryContainer').innerHTML = incomesHTML;
+
+      // 6. Fim dos Parcelamentos (Dívidas Parceladas)
+      const installmentDebts = debts
+        .map(d => ({
+          debt: d,
+          info: calculateInstallmentInfo(d.due_date, d.paid, d.current_installment, d.total_installments),
+        }))
+        .filter(item => item.info.isInstallment);
+
+      const installmentsContainer = document.getElementById('repInstallmentsSummaryContainer');
+      if (installmentDebts.length === 0) {
+        installmentsContainer.innerHTML = `<p style="font-size:12px;color:#71717A;text-align:center;padding:8px 0;">Nenhuma compra parcelada cadastrada no momento.</p>`;
+      } else {
+        const totalCommittedFuture = installmentDebts.reduce(
+          (acc, item) => acc + Number(item.debt.amount) * item.info.remaining,
+          0
+        );
+        const activeCount = installmentDebts.filter(x => x.info.remaining > 0).length;
+
+        const itemsHTML = installmentDebts
+          .map(({ debt, info }) => {
+            const committedVal = Number(debt.amount) * info.remaining;
+            const statusLine = info.isLastInstallmentPaid
+              ? `<span style="color:#15803D;font-weight:600;">Última parcela paga / Dívida quitada 🎉</span>`
+              : `${info.remaining === 1 ? 'Falta 1 parcela' : `Faltam ${info.remaining} parcelas`} • Acaba em <strong>${info.endMonthYear}</strong>`;
+
+            return `
+              <div style="background:#F8F9FA;border:1px solid #ECEEF2;border-radius:12px;padding:12px;margin-top:8px;">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">
+                  <div>
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                      <strong style="font-size:13px;color:#1A1A1A;">${debt.title || debt.description}</strong>
+                      <span style="font-size:10px;background:#FFFFFF;border:1px solid #E4E4E7;border-radius:999px;padding:1px 7px;color:#52525B;">
+                        Parcela ${info.current} de ${info.total}
+                      </span>
+                    </div>
+                    <div style="font-size:11px;color:#71717A;margin-top:3px;">${statusLine}</div>
+                  </div>
+                  <div style="text-align:right;flex-shrink:0;">
+                    <div style="font-size:10px;color:#71717A;">Restante total</div>
+                    <strong style="font-size:13px;color:#1E1B4B;">${formatBRL(committedVal, state.showValues)}</strong>
+                  </div>
+                </div>
+                <div class="bar-track" style="height:6px;">
+                  <div class="bar-fill-cherry" style="width:${info.progressPct}%;"></div>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+
+        installmentsContainer.innerHTML = `
+          <div style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div>
+              <div style="font-size:11px;font-weight:600;color:#1E1B4B;">Total ainda comprometido (próximos meses)</div>
+              <div style="font-size:11px;color:#52525B;">${activeCount} parcelamento(s) ativo(s)</div>
+            </div>
+            <strong style="font-size:14px;color:#1E1B4B;">${formatBRL(totalCommittedFuture, state.showValues)}</strong>
+          </div>
+          ${itemsHTML}
+        `;
+      }
+    }
+
+    function renderGoalsPage() {
+      const container = document.getElementById('goalsListContainer');
+      if (state.goals.length === 0) {
+        container.innerHTML = `<div style="background:#FFFFFF;border:1px dashed #E4E4E7;border-radius:16px;padding:18px;text-align:center;font-size:12px;color:#71717A;">Nenhuma meta cadastrada ainda. Defina um limite por Tag no formulário acima.</div>`;
+        return;
+      }
+      container.innerHTML = state.goals
+        .map(g => {
+          const spent = state.transactions
+            .filter(t => t.tag.toLowerCase() === g.tag.toLowerCase() && (t.type === 'expense' || t.paid))
+            .reduce((acc, t) => acc + Number(t.amount), 0);
+          const pct = Math.min(100, Math.round((spent / g.limit) * 100));
+          const isOver = spent > g.limit;
+          return `
+            <div class="goal-card">
+              <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#1A1A1A;">
+                <span>#${g.tag}</span>
+                <span style="color:${isOver ? '#DC2626' : '#1E1B4B'};">${formatBRL(spent, state.showValues)} / ${formatBRL(g.limit, state.showValues)} (${pct}%)</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill-cherry" style="width:${pct}%;${isOver ? 'background:#DC2626;' : ''}"></div>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    function renderHistoryPage() {
+      const allTags = [
+        'Todas',
+        ...new Set([
+          ...state.incomes.map(i => i.tag),
+          ...state.transactions.map(t => t.tag),
+        ]),
+      ];
+
+      const filterRow = document.getElementById('historyTagFilterRow');
+      filterRow.innerHTML = allTags
+        .map(tag => `<button type="button" class="filter-chip ${state.historyTagFilter === tag ? 'active' : ''}" data-hist-tag="${tag}">#${tag}</button>`)
+        .join('');
+
+      filterRow.querySelectorAll('[data-hist-tag]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.historyTagFilter = btn.getAttribute('data-hist-tag');
+          renderHistoryPage();
+        });
+      });
+
+      const incHTML = state.incomes
+        .filter(i => state.historyTagFilter === 'Todas' || i.tag === state.historyTagFilter)
+        .map(inc => `
+          <div class="history-item" style="background:#F0FDF4;border-color:#DCFCE7;">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#1A1A1A;">${inc.title || inc.description}</div>
+              <div style="font-size:11px;color:#15803D;">Entrada • #${inc.tag}</div>
+            </div>
+            <strong style="font-size:13px;color:#15803D;">+ ${formatBRL(inc.amount, state.showValues)}</strong>
+          </div>
+        `)
+        .join('');
+
+      const txHTML = state.transactions
+        .filter(t => state.historyTagFilter === 'Todas' || t.tag === state.historyTagFilter)
+        .map(tx => `
+          <div class="history-item">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#1A1A1A;">${tx.title || tx.description}</div>
+              <div style="font-size:11px;color:#71717A;">
+                ${tx.type === 'debt' ? (tx.paid ? 'Dívida Paga' : 'Dívida Pendente') : 'Gasto Avulso'} • #${tx.tag}
+              </div>
+            </div>
+            <strong style="font-size:13px;color:${tx.type === 'debt' && !tx.paid ? '#D97706' : '#DC2626'};">
+              - ${formatBRL(tx.amount, state.showValues)}
+            </strong>
+          </div>
+        `)
+        .join('');
+
+      const combinedHistoryHTML = incHTML + txHTML;
+      document.getElementById('historyListContainer').innerHTML = combinedHistoryHTML || `<div style="background:#FFFFFF;border:1px dashed #E4E4E7;border-radius:16px;padding:18px;text-align:center;font-size:12px;color:#71717A;">Nenhuma movimentação registrada ainda</div>`;
+    }
+
+    function renderAll() {
+      const baseSalary = getBaseSalary();
+      const extraTotal = getExtraIncomesTotal();
+      const totalSalary = baseSalary + extraTotal;
+
+      const debts = state.transactions.filter(t => t.type === 'debt');
+      const expenses = state.transactions.filter(t => t.type === 'expense');
+
+      const paidDebtsTotal = debts
+        .filter(d => d.paid)
+        .reduce((acc, d) => acc + Number(d.amount), 0);
+      const expensesTotal = expenses.reduce((acc, e) => acc + Number(e.amount), 0);
+
+      // Saldo Atual Disponível = Salário Total (Base + Entradas Extras) - Dívidas Pagas - Últimos Gastos
+      const availableBalance = totalSalary - paidDebtsTotal - expensesTotal;
+
+      // Header da Home
+      document.getElementById('salaryMainDisplay').textContent = formatBRL(totalSalary, state.showValues);
+      document.getElementById('availableBalanceDisplay').textContent = formatBRL(availableBalance, state.showValues);
+      document.getElementById('eyeIconContainer').innerHTML = getEyeIconSVG(state.showValues);
+
+      const dbBadge = document.getElementById('dbStatusBtn');
+      dbBadge.textContent = state.usingSupabase ? 'Supabase Conectado' : 'Modo Local Ativo';
+      dbBadge.style.color = state.usingSupabase ? '#4ADE80' : '#A0A0A0';
+
+      const breakdownEl = document.getElementById('salaryBreakdownText');
+      if (extraTotal > 0) {
+        breakdownEl.style.display = 'block';
+        breakdownEl.textContent = `Base: ${formatBRL(baseSalary, state.showValues)} + Entradas Extras: ${formatBRL(extraTotal, state.showValues)}`;
+      } else {
+        breakdownEl.style.display = 'none';
+      }
+
+      // Home: Minhas Dívidas & Últimos Gastos (Mensagens discretas de estado vazio)
+      const emptyDebtMsg = `<div style="background:#FFFFFF;border:1px dashed #E4E4E7;border-radius:16px;padding:18px;text-align:center;font-size:12px;color:#71717A;">Nenhuma dívida cadastrada neste mês</div>`;
+      const emptyExpMsg = `<div style="grid-column:span 2;background:#FFFFFF;border:1px dashed #E4E4E7;border-radius:16px;padding:18px;text-align:center;font-size:12px;color:#71717A;">Nenhum gasto registrado</div>`;
+
+      document.getElementById('homeDebtsContainer').innerHTML = debts.length ? debts.map(renderDebtCardHTML).join('') : emptyDebtMsg;
+      document.getElementById('homeExpensesContainer').innerHTML = expenses.length ? expenses.map(renderExpenseCardHTML).join('') : emptyExpMsg;
+
+      // Página Dívidas
+      const debtTags = ['Todas', ...new Set(debts.map(d => d.tag))];
+      document.getElementById('debtTagFilterRow').innerHTML = debtTags
+        .map(tag => `<button type="button" class="filter-chip ${state.debtTagFilter === tag ? 'active' : ''}" data-debt-tag="${tag}">#${tag}</button>`)
+        .join('');
+
+      const filteredDebts = debts.filter(d => {
+        if (state.debtStatusFilter === 'pending' && d.paid) return false;
+        if (state.debtStatusFilter === 'paid' && !d.paid) return false;
+        if (state.debtTagFilter !== 'Todas' && d.tag !== state.debtTagFilter) return false;
+        return true;
+      });
+      document.getElementById('tabDebtsListContainer').innerHTML = filteredDebts.length ? filteredDebts.map(renderDebtCardHTML).join('') : emptyDebtMsg;
+
+      // Página Gastos & Entradas Extras
+      const extras = state.incomes.filter(i => !i.is_base_salary);
+      const expTags = ['Todas', ...new Set([...expenses.map(e => e.tag), ...extras.map(i => i.tag)])];
+      document.getElementById('expenseTagFilterRow').innerHTML = expTags
+        .map(tag => `<button type="button" class="filter-chip ${state.expenseTagFilter === tag ? 'active' : ''}" data-exp-tag="${tag}">#${tag}</button>`)
+        .join('');
+
+      const filteredExtras = extras.filter(i => state.expenseTagFilter === 'Todas' || i.tag === state.expenseTagFilter);
+      const extraSection = document.getElementById('tabExtraIncomesSection');
+      if (filteredExtras.length > 0) {
+        extraSection.style.display = 'block';
+        document.getElementById('tabExtraIncomesContainer').innerHTML = filteredExtras
+          .map(inc => `
+            <div class="debt-card">
+              <div>
+                <div class="debt-name">${inc.title || inc.description}</div>
+                <span class="debt-tag-chip" style="background:#DCFCE7;color:#15803D;">#${inc.tag}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <strong style="color:#15803D;font-size:14px;">+ ${formatBRL(inc.amount, state.showValues)}</strong>
+                <button type="button" data-del-inc-id="${inc.id}" title="Excluir entrada" style="background:none;border:none;color:#A1A1AA;cursor:pointer;padding:6px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;" onmouseover="this.style.color='#DC2626'" onmouseout="this.style.color='#A1A1AA'">
+                  ${getTrashIconSVG()}
+                </button>
+              </div>
+            </div>
+          `)
+          .join('');
+      } else {
+        extraSection.style.display = 'none';
+      }
+
+      const filteredExpenses = expenses.filter(e => state.expenseTagFilter === 'Todas' || e.tag === state.expenseTagFilter);
+      document.getElementById('tabExpensesGridContainer').innerHTML = filteredExpenses.length ? filteredExpenses.map(renderExpenseCardHTML).join('') : emptyExpMsg;
+
+      // Renderizar páginas internas dedicadas
+      renderReportsPage(baseSalary, extraTotal, totalSalary, debts, expenses);
+      renderGoalsPage();
+      renderHistoryPage();
+
+      // Bind botões [Pagar]
+      document.querySelectorAll('[data-pay-id]').forEach(btn => {
+        btn.addEventListener('click', () => handlePayDebt(btn.getAttribute('data-pay-id')));
+      });
+
+      // Bind botões [Desfazer Pagamento]
+      document.querySelectorAll('[data-unpay-id]').forEach(btn => {
+        btn.addEventListener('click', () => handleUndoPayDebt(btn.getAttribute('data-unpay-id')));
+      });
+
+      // Bind botões [Excluir Transação]
+      document.querySelectorAll('[data-del-id]').forEach(btn => {
+        btn.addEventListener('click', () => handleDeleteTransaction(btn.getAttribute('data-del-id')));
+      });
+
+      // Bind botões [Excluir Entrada Extra]
+      document.querySelectorAll('[data-del-inc-id]').forEach(btn => {
+        btn.addEventListener('click', () => handleDeleteIncome(btn.getAttribute('data-del-inc-id')));
+      });
+
+      // Bind filtros de tag
+      document.querySelectorAll('[data-debt-tag]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.debtTagFilter = btn.getAttribute('data-debt-tag');
+          renderAll();
+        });
+      });
+
+      document.querySelectorAll('[data-exp-tag]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.expenseTagFilter = btn.getAttribute('data-exp-tag');
+          renderAll();
+        });
+      });
+    }
+
+    // =========================================================================
+    // AÇÕES E PERSISTÊNCIA (SUPABASE + ESTADO LOCAL)
+    // =========================================================================
+    async function handlePayDebt(debtId) {
+      state.transactions = state.transactions.map(t =>
+        t.id === debtId ? { ...t, paid: true } : t
+      );
+      saveLocalState();
+      renderAll();
+
+      if (state.supabaseClient && state.usingSupabase) {
+        try {
+          await state.supabaseClient.from('transactions').update({ paid: true }).eq('id', debtId);
+        } catch (e) {}
+      }
+    }
+
+    async function handleUndoPayDebt(debtId) {
+      state.transactions = state.transactions.map(t =>
+        t.id === debtId ? { ...t, paid: false } : t
+      );
+      saveLocalState();
+      renderAll();
+
+      if (state.supabaseClient && state.usingSupabase) {
+        try {
+          await state.supabaseClient.from('transactions').update({ paid: false }).eq('id', debtId);
+        } catch (e) {}
+      }
+    }
+
+    async function handleDeleteTransaction(txId) {
+      state.transactions = state.transactions.filter(t => t.id !== txId);
+      saveLocalState();
+      renderAll();
+
+      if (state.supabaseClient && state.usingSupabase) {
+        try {
+          await state.supabaseClient.from('transactions').delete().eq('id', txId);
+        } catch (e) {}
+      }
+    }
+
+    async function handleDeleteIncome(incId) {
+      state.incomes = state.incomes.filter(i => i.id !== incId);
+      saveLocalState();
+      renderAll();
+
+      if (state.supabaseClient && state.usingSupabase) {
+        try {
+          await state.supabaseClient.from('incomes').delete().eq('id', incId);
+        } catch (e) {}
+      }
+    }
+
+    function openModal(id) {
+      document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
+      const target = document.getElementById(id);
+      if (target) target.classList.add('open');
+    }
+
+    function closeAllModals() {
+      document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
+    }
+
+    // =========================================================================
+    // INICIALIZAÇÃO DE EVENTOS
+    // =========================================================================
+    document.addEventListener('DOMContentLoaded', () => {
+      loadLocalState();
+      document.getElementById('inputDebtDueDate').value = getOffsetDateString(3);
+
+      // Toggle olho de visibilidade
+      document.getElementById('eyeToggleBtn').addEventListener('click', () => {
+        state.showValues = !state.showValues;
+        renderAll();
+      });
+
+      // Botão "← Voltar" nas telas internas -> Redireciona para Início
+      document.getElementById('backToHomeBtn').addEventListener('click', () => {
+        navigateToPage('home');
+      });
+
+      // Fluxo de 2 etapas para alterar salário
+      document.getElementById('salaryMainBtn').addEventListener('click', () => {
+        document.getElementById('confirmCurrentSalaryText').textContent = formatBRL(getBaseSalary(), true);
+        openModal('modalConfirmSalary');
+      });
+
+      document.getElementById('btnConfirmSalaryYes').addEventListener('click', () => {
+        document.getElementById('inputNewSalary').value = String(getBaseSalary());
+        openModal('modalEditSalary');
+      });
+
+      document.getElementById('formEditSalary').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const val = parseFloat(document.getElementById('inputNewSalary').value);
+        if (isNaN(val) || val < 0) return;
+
+        const currentMonthYear = getCurrentMonthYear();
+        let baseItem = state.incomes.find(i => i.is_base_salary);
+        if (baseItem) {
+          baseItem.amount = val;
+        } else {
+          baseItem = {
+            id: 'inc-base-salary',
+            title: 'Salário Base',
+            amount: val,
+            tag: 'Salário',
+            is_base_salary: true,
+            month_year: currentMonthYear,
+            created_at: new Date().toISOString(),
+          };
+          state.incomes.unshift(baseItem);
+        }
+
+        saveLocalState();
+        closeAllModals();
+        renderAll();
+
+        if (state.supabaseClient && state.usingSupabase) {
+          try {
+            const { data: existingRows } = await state.supabaseClient
+              .from('incomes')
+              .select('id')
+              .eq('is_base_salary', true)
+              .eq('month_year', currentMonthYear)
+              .limit(1);
+
+            if (existingRows && existingRows.length > 0) {
+              await state.supabaseClient
+                .from('incomes')
+                .update({ amount: val, title: 'Salário Base', tag: 'Salário' })
+                .eq('id', existingRows[0].id);
+              baseItem.id = existingRows[0].id;
+            } else {
+              const { data: inserted } = await state.supabaseClient
+                .from('incomes')
+                .insert({
+                  title: 'Salário Base',
+                  amount: val,
+                  tag: 'Salário',
+                  is_base_salary: true,
+                  month_year: currentMonthYear,
+                })
+                .select('*')
+                .single();
+              if (inserted) baseItem.id = inserted.id;
+            }
+            saveLocalState();
+          } catch (err) {}
+        }
+      });
+
+      // Botões de Ações Rápidas
+      document.getElementById('qaPayBillBtn').addEventListener('click', () => openModal('modalNewDebt'));
+      document.getElementById('tabAddDebtBtn').addEventListener('click', () => openModal('modalNewDebt'));
+
+      function openExpenseOrIncomeModal(mode) {
+        const isExp = mode === 'expense';
+        document.getElementById('switchModeExpense').classList.toggle('active', isExp);
+        document.getElementById('switchModeIncome').classList.toggle('active', !isExp);
+        document.getElementById('formNewExpense').style.display = isExp ? 'block' : 'none';
+        document.getElementById('formNewIncome').style.display = isExp ? 'none' : 'block';
+        openModal('modalExpenseOrIncome');
+      }
+
+      document.getElementById('qaNewExpenseBtn').addEventListener('click', () => openExpenseOrIncomeModal('expense'));
+      document.getElementById('tabAddExpenseBtn').addEventListener('click', () => openExpenseOrIncomeModal('expense'));
+      document.getElementById('tabAddIncomeBtn').addEventListener('click', () => openExpenseOrIncomeModal('income'));
+
+      document.getElementById('switchModeExpense').addEventListener('click', () => openExpenseOrIncomeModal('expense'));
+      document.getElementById('switchModeIncome').addEventListener('click', () => openExpenseOrIncomeModal('income'));
+
+      // Navegação para páginas dedicadas (Relatórios, Metas, Histórico)
+      document.getElementById('qaReportsBtn').addEventListener('click', () => navigateToPage('reports'));
+      document.getElementById('qaGoalsBtn').addEventListener('click', () => navigateToPage('goals'));
+      document.getElementById('qaHistoryBtn').addEventListener('click', () => navigateToPage('history'));
+
+      // Seleção de ícones nos modais
+      document.querySelectorAll('#debtIconPicker .icon-pick-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#debtIconPicker .icon-pick-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          state.selectedDebtIcon = btn.getAttribute('data-icon');
+        });
+      });
+
+      document.querySelectorAll('#expenseIconPicker .icon-pick-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#expenseIconPicker .icon-pick-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          state.selectedExpenseIcon = btn.getAttribute('data-icon');
+          const defaultTag = btn.getAttribute('data-default-tag');
+          const tagInput = document.getElementById('inputExpenseTag');
+          if (
+            defaultTag &&
+            tagInput &&
+            ['Supermercado', 'Carro', 'Moto', 'Alimentação', 'Outros'].includes(tagInput.value.trim())
+          ) {
+            tagInput.value = defaultTag;
+          }
+        });
+      });
+
+      // Toggle do Accordion de Últimos Abastecimentos (Gasolina)
+      const fuelToggleBtn = document.getElementById('repFuelToggleBtn');
+      if (fuelToggleBtn) {
+        fuelToggleBtn.addEventListener('click', () => {
+          state.fuelAccordionOpen = !state.fuelAccordionOpen;
+          renderAll();
+        });
+      }
+
+      // Sugestões rápidas de TAG
+      document.querySelectorAll('.tag-sug-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.getAttribute('data-target');
+          const val = btn.getAttribute('data-val');
+          document.getElementById(targetId).value = val;
+        });
+      });
+
+      // Toggle de Dívida Parcelada no modal Nova Dívida
+      const isInstCheckbox = document.getElementById('inputDebtIsInstallment');
+      const instFieldsRow = document.getElementById('debtInstallmentsFieldsRow');
+      const singleInstHint = document.getElementById('debtSingleInstallmentHint');
+
+      isInstCheckbox.addEventListener('change', () => {
+        const checked = isInstCheckbox.checked;
+        instFieldsRow.style.display = checked ? 'grid' : 'none';
+        singleInstHint.style.display = checked ? 'none' : 'block';
+      });
+
+      // Salvar Nova Dívida
+      document.getElementById('formNewDebt').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const desc = document.getElementById('inputDebtDesc').value.trim();
+        const amount = parseFloat(document.getElementById('inputDebtAmount').value);
+        const dueDate = document.getElementById('inputDebtDueDate').value;
+        const tag = document.getElementById('inputDebtTag').value.trim() || 'Geral';
+        if (!desc || isNaN(amount) || amount <= 0) return;
+
+        const isParcelada = isInstCheckbox.checked;
+        const rawTotal = parseInt(document.getElementById('inputDebtTotalInstallments').value, 10) || 1;
+        const rawCurrent = parseInt(document.getElementById('inputDebtCurrentInstallment').value, 10) || 1;
+
+        const totalInstallments = isParcelada ? Math.max(2, rawTotal) : 1;
+        const currentInstallment = isParcelada ? Math.max(1, Math.min(totalInstallments, rawCurrent)) : 1;
+
+        const currentMonthYear = getCurrentMonthYear();
+        const newDebt = {
+          id: 'debt-' + Date.now(),
+          title: desc,
+          amount,
+          type: 'debt',
+          tag,
+          icon: state.selectedDebtIcon,
+          due_date: dueDate,
+          paid: false,
+          total_installments: totalInstallments,
+          current_installment: currentInstallment,
+          month_year: currentMonthYear,
+          created_at: new Date().toISOString(),
+        };
+
+        state.transactions.unshift(newDebt);
+        saveLocalState();
+        document.getElementById('inputDebtDesc').value = '';
+        document.getElementById('inputDebtAmount').value = '';
+        isInstCheckbox.checked = false;
+        instFieldsRow.style.display = 'none';
+        singleInstHint.style.display = 'block';
+        document.getElementById('inputDebtCurrentInstallment').value = '1';
+        document.getElementById('inputDebtTotalInstallments').value = '10';
+        closeAllModals();
+        renderAll();
+
+        if (state.supabaseClient && state.usingSupabase) {
+          try {
+            const { id, created_at, ...payload } = newDebt;
+            const { data } = await state.supabaseClient
+              .from('transactions')
+              .insert(payload)
+              .select('*')
+              .single();
+            if (data && data.id) {
+              newDebt.id = data.id;
+              saveLocalState();
+              renderAll();
+            }
+          } catch (err) {}
+        }
+      });
+
+      // Salvar Novo Gasto
+      document.getElementById('formNewExpense').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const desc = document.getElementById('inputExpenseDesc').value.trim();
+        const amount = parseFloat(document.getElementById('inputExpenseAmount').value);
+        const tag = document.getElementById('inputExpenseTag').value.trim() || 'Geral';
+        if (!desc || isNaN(amount) || amount <= 0) return;
+
+        const currentMonthYear = getCurrentMonthYear();
+        const newExp = {
+          id: 'exp-' + Date.now(),
+          title: desc,
+          amount,
+          type: 'expense',
+          tag,
+          icon: state.selectedExpenseIcon,
+          due_date: null,
+          paid: true,
+          total_installments: 1,
+          current_installment: 1,
+          month_year: currentMonthYear,
+          created_at: new Date().toISOString(),
+        };
+
+        state.transactions.unshift(newExp);
+        saveLocalState();
+        document.getElementById('inputExpenseDesc').value = '';
+        document.getElementById('inputExpenseAmount').value = '';
+        closeAllModals();
+        renderAll();
+
+        if (state.supabaseClient && state.usingSupabase) {
+          try {
+            const { id, created_at, ...payload } = newExp;
+            const { data } = await state.supabaseClient
+              .from('transactions')
+              .insert(payload)
+              .select('*')
+              .single();
+            if (data && data.id) {
+              newExp.id = data.id;
+              saveLocalState();
+              renderAll();
+            }
+          } catch (err) {}
+        }
+      });
+
+      // Salvar Nova Entrada Extra
+      document.getElementById('formNewIncome').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const desc = document.getElementById('inputIncomeDesc').value.trim();
+        const amount = parseFloat(document.getElementById('inputIncomeAmount').value);
+        const tag = document.getElementById('inputIncomeTag').value.trim() || 'Extra';
+        if (!desc || isNaN(amount) || amount <= 0) return;
+
+        const currentMonthYear = getCurrentMonthYear();
+        const newInc = {
+          id: 'inc-' + Date.now(),
+          title: desc,
+          amount,
+          tag,
+          is_base_salary: false,
+          month_year: currentMonthYear,
+          created_at: new Date().toISOString(),
+        };
+
+        state.incomes.push(newInc);
+        saveLocalState();
+        document.getElementById('inputIncomeDesc').value = '';
+        document.getElementById('inputIncomeAmount').value = '';
+        closeAllModals();
+        renderAll();
+
+        if (state.supabaseClient && state.usingSupabase) {
+          try {
+            const { id, created_at, ...payload } = newInc;
+            const { data } = await state.supabaseClient
+              .from('incomes')
+              .insert(payload)
+              .select('*')
+              .single();
+            if (data && data.id) {
+              newInc.id = data.id;
+              saveLocalState();
+              renderAll();
+            }
+          } catch (err) {}
+        }
+      });
+
+      // Adicionar Meta
+      document.getElementById('formAddGoal').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const tag = document.getElementById('inputGoalTag').value.trim();
+        const limit = parseFloat(document.getElementById('inputGoalLimit').value);
+        if (!tag || isNaN(limit) || limit <= 0) return;
+
+        const existing = state.goals.find(g => g.tag.toLowerCase() === tag.toLowerCase());
+        if (existing) {
+          existing.limit = limit;
+        } else {
+          state.goals.push({ tag, limit });
+        }
+        saveLocalState();
+        document.getElementById('inputGoalTag').value = '';
+        document.getElementById('inputGoalLimit').value = '';
+        renderGoalsPage();
+      });
+
+      // Configurar Supabase via modal
+      document.getElementById('dbStatusBtn').addEventListener('click', () => {
+        document.getElementById('inputSbUrl').value = localStorage.getItem(LS_SB_URL) || DEFAULT_SUPABASE_URL;
+        document.getElementById('inputSbKey').value = localStorage.getItem(LS_SB_KEY) || DEFAULT_SUPABASE_PUBLISHABLE_KEY;
+        openModal('modalSupabaseConfig');
+      });
+
+      document.getElementById('formSupabaseConfig').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const url = document.getElementById('inputSbUrl').value.trim();
+        const key = document.getElementById('inputSbKey').value.trim();
+        localStorage.setItem(LS_SB_URL, url);
+        localStorage.setItem(LS_SB_KEY, key);
+        closeAllModals();
+        await initSupabase();
+      });
+
+      // Navegação Bottom Tab Bar
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => navigateToPage(btn.getAttribute('data-tab')));
+      });
+      document.getElementById('seeAllDebtsBtn').addEventListener('click', () => navigateToPage('debts'));
+      document.getElementById('seeAllExpensesBtn').addEventListener('click', () => navigateToPage('expenses'));
+
+      // Filtro de status na aba Dívidas
+      document.querySelectorAll('#debtStatusFilterRow .filter-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#debtStatusFilterRow .filter-chip').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.debtStatusFilter = btn.getAttribute('data-status');
+          renderAll();
+        });
+      });
+
+      // Fechar modais
+      document.querySelectorAll('[data-close-modal]').forEach(btn => {
+        btn.addEventListener('click', closeAllModals);
+      });
+      document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+        backdrop.addEventListener('click', (e) => {
+          if (e.target === backdrop) closeAllModals();
+        });
+      });
+
+      initSupabase();
+    });
+  </script>
+</body>
+</html>
