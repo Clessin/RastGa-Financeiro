@@ -1,10 +1,62 @@
 import { IncomeRecord, TransactionRecord, TagGoal } from '@/types/finance';
 
+export const PT_MONTHS_FULL = [
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+];
+
+export const PT_MONTHS_SHORT = [
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
+];
+
 export function getCurrentMonthYear(): string {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   return `${year}-${month}`;
+}
+
+export function parseMonthYear(monthYear: string): { year: number; monthIndex: number } {
+  const parts = String(monthYear || getCurrentMonthYear())
+    .split('-')
+    .map(Number);
+  const year = parts[0] || new Date().getFullYear();
+  const monthIndex = Math.max(0, Math.min(11, (parts[1] || 1) - 1));
+  return { year, monthIndex };
+}
+
+export function formatMonthYearLabel(monthYear: string): string {
+  const { year, monthIndex } = parseMonthYear(monthYear);
+  return `${PT_MONTHS_FULL[monthIndex]} ${year}`;
+}
+
+export function shiftMonthYear(monthYear: string, deltaMonths: number): string {
+  const { year, monthIndex } = parseMonthYear(monthYear);
+  const shifted = new Date(year, monthIndex + deltaMonths, 1);
+  const y = shifted.getFullYear();
+  const m = String(shifted.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
 }
 
 export function getOffsetDateString(daysOffset: number): string {
@@ -14,6 +66,18 @@ export function getOffsetDateString(daysOffset: number): string {
   const month = String(target.getMonth() + 1).padStart(2, '0');
   const day = String(target.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+export function getDefaultDueDateForMonth(monthYear: string): string {
+  const current = getCurrentMonthYear();
+  if (monthYear === current) {
+    const candidate = getOffsetDateString(3);
+    if (candidate.startsWith(current)) return candidate;
+    return getOffsetDateString(0);
+  }
+  const { year, monthIndex } = parseMonthYear(monthYear);
+  const m = String(monthIndex + 1).padStart(2, '0');
+  return `${year}-${m}-10`;
 }
 
 // ZERO DADOS AUTOMÁTICOS: Inicialização 100% limpa
@@ -117,21 +181,6 @@ export function calculateDueStatus(dueDateStr: string | null, paid: boolean): Du
   };
 }
 
-const PT_MONTHS_SHORT = [
-  'Jan',
-  'Fev',
-  'Mar',
-  'Abr',
-  'Mai',
-  'Jun',
-  'Jul',
-  'Ago',
-  'Set',
-  'Out',
-  'Nov',
-  'Dez',
-];
-
 export interface InstallmentInfo {
   isInstallment: boolean;
   current: number;
@@ -187,6 +236,70 @@ export function calculateInstallmentInfo(
     paidCount,
     progressPct,
     isLastInstallmentPaid,
+    endMonthYear,
+  };
+}
+
+export interface DebtBalanceInfo {
+  isBalanceDebt: boolean;
+  totalDebt: number;
+  alreadyPaid: number;
+  remainingBalance: number;
+  installmentAmount: number;
+  remainingInstallments: number;
+  progressPct: number;
+  isFullyPaid: boolean;
+  endMonthYear: string; // Ex: "Mai/2027"
+}
+
+export function calculateDebtBalanceInfo(
+  dueDateStr: string | null,
+  installmentAmount?: number | null,
+  totalDebtAmount?: number | null,
+  alreadyPaidAmount?: number | null
+): DebtBalanceInfo {
+  const totalDebt = Math.max(0, Number(totalDebtAmount || 0));
+  const isBalanceDebt = totalDebt > 0;
+  const alreadyPaid = Math.max(0, Math.min(totalDebt, Number(alreadyPaidAmount || 0)));
+  const remainingBalance = Math.max(0, Number((totalDebt - alreadyPaid).toFixed(2)));
+  const instVal = Math.max(0, Number(installmentAmount || 0));
+
+  const remainingInstallments =
+    remainingBalance <= 0.004
+      ? 0
+      : instVal > 0
+      ? Math.ceil(remainingBalance / instVal)
+      : 0;
+
+  const progressPct =
+    totalDebt > 0 ? Math.min(100, Math.round((alreadyPaid / totalDebt) * 100)) : 0;
+
+  const isFullyPaid = isBalanceDebt && (alreadyPaid >= totalDebt || remainingBalance <= 0.004);
+
+  let baseYear: number;
+  let baseMonthIndex: number;
+  if (dueDateStr && dueDateStr.includes('-')) {
+    const parts = dueDateStr.split('-').map(Number);
+    baseYear = parts[0] || new Date().getFullYear();
+    baseMonthIndex = (parts[1] || 1) - 1;
+  } else {
+    const now = new Date();
+    baseYear = now.getFullYear();
+    baseMonthIndex = now.getMonth();
+  }
+
+  const endDate = new Date(baseYear, baseMonthIndex + remainingInstallments, 1);
+  const endMonthYear = `${PT_MONTHS_SHORT[endDate.getMonth()]}/${endDate.getFullYear()}`;
+
+  return {
+    isBalanceDebt,
+    totalDebt,
+    alreadyPaid,
+    remainingBalance,
+    installmentAmount: instVal,
+    remainingInstallments,
+    progressPct,
+    isFullyPaid,
     endMonthYear,
   };
 }
