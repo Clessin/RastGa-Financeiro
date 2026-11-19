@@ -40,6 +40,123 @@
       justify-content: center;
     }
 
+    /* ====================================================================
+       PARTE 1: TELA DE BLOQUEIO / LOGIN & REGISTRO (SUPABASE AUTH)
+       ==================================================================== */
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: linear-gradient(145deg, #1E1B4B 0%, #2A1B4E 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .auth-checking-box {
+      text-align: center;
+      color: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .auth-checking-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFFFFF;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 380px;
+      background: #FFFFFF;
+      border-radius: 24px;
+      padding: 26px 22px;
+      box-shadow: 0 24px 48px rgba(10, 8, 30, 0.35);
+    }
+
+    .auth-logo-badge {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      background: #EEF2FF;
+      color: #1E1B4B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px auto;
+    }
+
+    .auth-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1A1A1A;
+      text-align: center;
+      letter-spacing: -0.3px;
+      margin-bottom: 6px;
+    }
+
+    .auth-subtitle {
+      font-size: 12.5px;
+      color: #71717A;
+      text-align: center;
+      line-height: 1.45;
+      margin-bottom: 20px;
+    }
+
+    .auth-error-box {
+      display: none;
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      color: #B91C1C;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+
+    .auth-divider {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid #F1F5F9;
+      text-align: center;
+    }
+
+    .auth-switch-prompt {
+      font-size: 12px;
+      color: #71717A;
+      margin-bottom: 8px;
+    }
+
+    .auth-switch-btn {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: none;
+      background: #EEF2FF;
+      color: #1E1B4B;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .auth-switch-btn:hover {
+      background: #E0E7FF;
+    }
+
     .app-shell {
       width: 100%;
       max-width: 440px;
@@ -52,20 +169,184 @@
     }
 
     /* ====================================================================
+       PARTE 3: SELETOR COMPACTO DE MÊS/ANO (CALENDÁRIO MENSAL)
+       ==================================================================== */
+    .month-nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 16px;
+    }
+
+    .month-nav-bar.dark {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #FFFFFF;
+      margin-bottom: 16px;
+    }
+
+    .month-nav-bar.light {
+      background: #FFFFFF;
+      border: 1px solid #ECEEF2;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+      color: #1E1B4B;
+    }
+
+    .month-arrow-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+
+    .month-nav-bar.dark .month-arrow-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: #FFFFFF;
+    }
+
+    .month-nav-bar.dark .month-arrow-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .month-nav-bar.light .month-arrow-btn {
+      background: #F0F0F2;
+      color: #1E1B4B;
+    }
+
+    .month-nav-bar.light .month-arrow-btn:hover {
+      background: #E4E4E7;
+    }
+
+    .month-arrow-btn:active {
+      transform: scale(0.94);
+    }
+
+    .month-center-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      border-radius: 12px;
+      padding: 6px 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .month-nav-bar.dark .month-center-btn {
+      color: #FFFFFF;
+    }
+
+    .month-nav-bar.dark .month-center-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .month-nav-bar.light .month-center-btn {
+      color: #1E1B4B;
+    }
+
+    .month-nav-bar.light .month-center-btn:hover {
+      background: #EEF2FF;
+    }
+
+    .calendar-year-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .calendar-year-label {
+      font-size: 17px;
+      font-weight: 700;
+      color: #1A1A1A;
+    }
+
+    .calendar-months-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .calendar-month-cell {
+      padding: 10px 6px;
+      border-radius: 12px;
+      border: 1px solid #E4E4E7;
+      background: #F8F9FA;
+      color: #1A1A1A;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+
+    .calendar-month-cell:hover {
+      background: #F0F0F2;
+    }
+
+    .calendar-month-cell.current-real {
+      background: #EEF2FF;
+      border-color: #C7D2FE;
+      color: #1E1B4B;
+    }
+
+    .calendar-month-cell.selected {
+      background: #1E1B4B;
+      border-color: #1E1B4B;
+      color: #FFFFFF;
+    }
+
+    /* Toast discreto */
+    .app-toast {
+      display: none;
+      margin: 12px 20px 0 20px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: #1E1B4B;
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    /* ====================================================================
        SEÇÃO 1: CABEÇALHO PRINCIPAL (EXCLUSIVO DA ABA INÍCIO - AZUL CEREJA)
        ==================================================================== */
     .main-header {
       background: linear-gradient(145deg, #1E1B4B 0%, #2A1B4E 100%);
       color: #FFFFFF;
       text-align: left;
-      padding: 28px 20px 22px 20px;
+      padding: 20px 20px 22px 20px;
     }
 
     .header-top-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 8px;
       margin-bottom: 4px;
+    }
+
+    .header-badges-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .salary-label {
@@ -79,9 +360,28 @@
       padding: 3px 9px;
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.12);
-      color: #A0A0A0;
+      color: #4ADE80;
       border: none;
+      cursor: default;
+    }
+
+    .logout-pill-btn {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      color: rgba(255, 255, 255, 0.92);
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
       cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .logout-pill-btn:hover {
+      background: rgba(255, 255, 255, 0.24);
     }
 
     .salary-value-btn {
@@ -173,6 +473,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      min-width: 0;
     }
 
     .back-home-btn {
@@ -187,6 +488,7 @@
       align-items: center;
       gap: 5px;
       cursor: pointer;
+      flex-shrink: 0;
       transition: background 0.15s ease, transform 0.1s ease;
     }
 
@@ -203,16 +505,19 @@
       font-weight: 600;
       color: #FFFFFF;
       letter-spacing: -0.2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* ====================================================================
        CORPO E SEÇÕES
        ==================================================================== */
     .main-body {
-      padding: 22px 20px;
+      padding: 20px 20px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 22px;
       flex: 1;
       background-color: #F8F9FA;
     }
@@ -366,17 +671,23 @@
       margin-top: 2px;
     }
 
+    .debt-amount.highlighted {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1E1B4B;
+    }
+
     .debt-right {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       flex-shrink: 0;
     }
 
     .due-badge {
       font-size: 11px;
       font-weight: 600;
-      padding: 4px 10px;
+      padding: 4px 9px;
       border-radius: 9999px;
       border: 1px solid transparent;
       white-space: nowrap;
@@ -387,7 +698,7 @@
       color: #FFFFFF;
       border: none;
       border-radius: 9999px;
-      padding: 6px 14px;
+      padding: 6px 13px;
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
@@ -400,6 +711,23 @@
 
     .pay-pill-btn:active {
       transform: scale(0.95);
+    }
+
+    .debt-preview-box {
+      display: none;
+      background: #EEF2FF;
+      border: 1px solid #C7D2FE;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
+    .debt-preview-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 5px;
     }
 
     /* ====================================================================
@@ -621,12 +949,12 @@
 
     .modal-box {
       width: 100%;
-      max-width: 380px;
+      max-width: 390px;
       background: #FFFFFF;
       border-radius: 20px;
       padding: 22px;
       box-shadow: 0 20px 40px rgba(30, 27, 75, 0.25);
-      max-height: 85vh;
+      max-height: 88vh;
       overflow-y: auto;
     }
 
@@ -645,7 +973,7 @@
     }
 
     .form-group {
-      margin-bottom: 14px;
+      margin-bottom: 13px;
     }
 
     .form-label {
@@ -658,12 +986,13 @@
 
     .form-input {
       width: 100%;
-      padding: 10px 13px;
+      padding: 10px 12px;
       border-radius: 12px;
       border: 1px solid #D4D4D8;
       font-size: 14px;
       color: #1A1A1A;
       outline: none;
+      background: #FFFFFF;
     }
 
     .form-input:focus {
@@ -719,7 +1048,7 @@
     .modal-actions {
       display: flex;
       gap: 10px;
-      margin-top: 18px;
+      margin-top: 16px;
     }
 
     .btn-secondary {
@@ -744,6 +1073,12 @@
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     .mode-switcher {
@@ -752,7 +1087,7 @@
       background: #F0F0F2;
       padding: 4px;
       border-radius: 999px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .mode-switch-btn {
@@ -819,19 +1154,127 @@
       border: 1px solid #ECEEF2;
       margin-bottom: 8px;
     }
+
+    .month-hint-pill {
+      display: none;
+      background: #EEF2FF;
+      color: #1E1B4B;
+      border-radius: 10px;
+      padding: 8px 11px;
+      font-size: 11.5px;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
-  <div class="app-shell">
+  <!-- ==================================================================== -->
+  <!-- PARTE 1: BLOQUEIO INICIAL + TELA DE LOGIN / REGISTRO (SUPABASE AUTH) -->
+  <!-- ==================================================================== -->
+  <div id="authLockOverlay" class="auth-overlay">
+    <div id="authCheckingBox" class="auth-checking-box">
+      <div class="auth-checking-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+      </div>
+      <p style="font-size: 14px; font-weight: 500; opacity: 0.9;">Verificando sessão...</p>
+    </div>
+
+    <div id="authCardBox" class="auth-card" style="display: none;">
+      <div class="auth-logo-badge">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+      </div>
+      <h1 id="authCardTitle" class="auth-title">Acesse suas Finanças</h1>
+      <p id="authCardSubtitle" class="auth-subtitle">
+        Entre com seu usuário (ou e-mail) e senha para visualizar e gerenciar seus dados com segurança.
+      </p>
+
+      <div id="authErrorBox" class="auth-error-box"></div>
+
+      <form id="formAuth">
+        <div class="form-group">
+          <label class="form-label" for="inputAuthEmail">Usuário ou E-mail</label>
+          <input
+            type="text"
+            id="inputAuthEmail"
+            class="form-input"
+            autocomplete="username"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            required
+            placeholder="Ex: clessin ou seu@email.com"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="inputAuthPassword">Senha</label>
+          <input
+            type="password"
+            id="inputAuthPassword"
+            class="form-input"
+            autocomplete="current-password"
+            minlength="6"
+            required
+            placeholder="••••••••"
+          />
+        </div>
+
+        <button type="submit" id="btnAuthSubmit" class="btn-primary" style="width: 100%; padding: 12px;">
+          Entrar
+        </button>
+      </form>
+
+      <div class="auth-divider">
+        <p id="authSwitchPrompt" class="auth-switch-prompt">Ainda não tem uma conta?</p>
+        <button type="button" id="btnAuthSwitchMode" class="auth-switch-btn">
+          Registrar nova conta
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- APLICATIVO PRINCIPAL (SÓ VISÍVEL COM SESSÃO AUTENTICADA)             -->
+  <!-- ==================================================================== -->
+  <div id="appShell" class="app-shell" style="display: none;">
     <!-- ================================================================== -->
     <!-- SEÇÃO 1: CABEÇALHO PRINCIPAL (EXCLUSIVO DA ABA INÍCIO)             -->
     <!-- ================================================================== -->
     <header id="homeSalaryHeader" class="main-header">
+      <!-- PARTE 3: SELETOR DE MÊS/ANO ACIMA DE "SALÁRIO TOTAL" -->
+      <div class="month-nav-bar dark">
+        <button type="button" class="month-arrow-btn" data-month-prev aria-label="Mês anterior">‹</button>
+        <button type="button" class="month-center-btn" data-month-open>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <span class="month-label-text">Novembro 2026</span>
+        </button>
+        <button type="button" class="month-arrow-btn" data-month-next aria-label="Próximo mês">›</button>
+      </div>
+
       <div class="header-top-row">
         <span class="salary-label">Salário Total</span>
-        <button type="button" id="dbStatusBtn" class="db-badge" title="Configurar conexão Supabase">
-          Modo Local Ativo
-        </button>
+        <div class="header-badges-right">
+          <span id="dbStatusBadge" class="db-badge">Supabase Conectado</span>
+          <button type="button" id="btnLogoutHome" class="logout-pill-btn" title="Encerrar sessão">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span>Sair</span>
+          </button>
+        </div>
       </div>
 
       <!-- Valor Principal Clicável -> Etapa 1: Modal de Confirmação -->
@@ -866,7 +1309,17 @@
         </button>
         <h1 id="internalHeaderTitle" class="internal-page-title">Página</h1>
       </div>
+      <button type="button" id="btnLogoutInternal" class="logout-pill-btn" title="Encerrar sessão">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" y1="12" x2="9" y2="12" />
+        </svg>
+        <span>Sair</span>
+      </button>
     </header>
+
+    <div id="appToast" class="app-toast"></div>
 
     <!-- ================================================================== -->
     <!-- PÁGINA 1: INÍCIO (HOME)                                            -->
@@ -878,7 +1331,6 @@
           <h2 class="section-title">Ações Rápidas</h2>
         </div>
         <div class="quick-actions-carousel">
-          <!-- 1. Pagar conta -->
           <button type="button" class="quick-action-item" id="qaPayBillBtn">
             <div class="quick-action-circle">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
@@ -893,7 +1345,6 @@
             <span class="quick-action-label">Pagar conta</span>
           </button>
 
-          <!-- 2. Novo gasto -->
           <button type="button" class="quick-action-item" id="qaNewExpenseBtn">
             <div class="quick-action-circle">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -904,7 +1355,6 @@
             <span class="quick-action-label">Novo gasto</span>
           </button>
 
-          <!-- 3. Relatórios (NOVO ÍCONE NO CARROSSEL) -->
           <button type="button" class="quick-action-item" id="qaReportsBtn">
             <div class="quick-action-circle">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -916,7 +1366,6 @@
             <span class="quick-action-label">Relatórios</span>
           </button>
 
-          <!-- 4. Metas -->
           <button type="button" class="quick-action-item" id="qaGoalsBtn">
             <div class="quick-action-circle">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
@@ -928,7 +1377,6 @@
             <span class="quick-action-label">Metas</span>
           </button>
 
-          <!-- 5. Histórico -->
           <button type="button" class="quick-action-item" id="qaHistoryBtn">
             <div class="quick-action-circle">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
@@ -965,7 +1413,21 @@
     <!-- PÁGINA INTERNA: DÍVIDAS DO MÊS                                     -->
     <!-- ================================================================== -->
     <main id="pageDebts" class="main-body" style="display: none;">
-      <div class="section-header" style="margin-bottom: 4px;">
+      <div class="month-nav-bar light">
+        <button type="button" class="month-arrow-btn" data-month-prev aria-label="Mês anterior">‹</button>
+        <button type="button" class="month-center-btn" data-month-open>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <span class="month-label-text">Novembro 2026</span>
+        </button>
+        <button type="button" class="month-arrow-btn" data-month-next aria-label="Próximo mês">›</button>
+      </div>
+
+      <div class="section-header" style="margin-bottom: 0;">
         <h2 class="section-title">Gerenciar Dívidas</h2>
         <button type="button" class="pay-pill-btn" id="tabAddDebtBtn">+ Nova Dívida</button>
       </div>
@@ -985,7 +1447,21 @@
     <!-- PÁGINA INTERNA: GASTOS & ENTRADAS EXTRAS                           -->
     <!-- ================================================================== -->
     <main id="pageExpenses" class="main-body" style="display: none;">
-      <div class="section-header" style="margin-bottom: 4px;">
+      <div class="month-nav-bar light">
+        <button type="button" class="month-arrow-btn" data-month-prev aria-label="Mês anterior">‹</button>
+        <button type="button" class="month-center-btn" data-month-open>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <span class="month-label-text">Novembro 2026</span>
+        </button>
+        <button type="button" class="month-arrow-btn" data-month-next aria-label="Próximo mês">›</button>
+      </div>
+
+      <div class="section-header" style="margin-bottom: 0;">
         <h2 class="section-title">Movimentações Rápidas</h2>
         <div style="display: flex; gap: 6px;">
           <button type="button" class="pay-pill-btn" id="tabAddExpenseBtn">+ Gasto</button>
@@ -1014,7 +1490,21 @@
     <!-- PÁGINA INTERNA DEDICADA: RELATÓRIOS                                -->
     <!-- ================================================================== -->
     <main id="pageReports" class="main-body" style="display: none;">
-      <!-- NOVO RELATÓRIO: GASTOS COM GASOLINA NO MÊS -->
+      <div class="month-nav-bar light">
+        <button type="button" class="month-arrow-btn" data-month-prev aria-label="Mês anterior">‹</button>
+        <button type="button" class="month-center-btn" data-month-open>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <span class="month-label-text">Novembro 2026</span>
+        </button>
+        <button type="button" class="month-arrow-btn" data-month-next aria-label="Próximo mês">›</button>
+      </div>
+
+      <!-- RELATÓRIO: GASTOS COM GASOLINA NO MÊS SELECIONADO -->
       <section class="report-card" id="repFuelCard">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
           <div style="display:flex;align-items:center;gap:12px;min-width:0;">
@@ -1136,12 +1626,12 @@
         <div id="repIncomesSummaryContainer"></div>
       </section>
 
-      <!-- 6. Fim dos Parcelamentos (Dívidas Parceladas) -->
+      <!-- 6. Fim dos Parcelamentos e Dívidas em Andamento (PARTE 2) -->
       <section class="report-card">
         <div class="report-card-title">
-          <span>6. Fim dos Parcelamentos</span>
+          <span>6. Fim dos Parcelamentos e Dívidas</span>
         </div>
-        <p class="report-card-sub">Compras parceladas ativas, valor total ainda comprometido nos próximos meses e mês/ano de encerramento.</p>
+        <p class="report-card-sub">Resumo das dívidas em andamento com valor pago, saldo restante e previsão de quitação.</p>
         <div id="repInstallmentsSummaryContainer"></div>
       </section>
     </main>
@@ -1176,6 +1666,20 @@
     <!-- PÁGINA INTERNA DEDICADA: HISTÓRICO COMPLETO                        -->
     <!-- ================================================================== -->
     <main id="pageHistory" class="main-body" style="display: none;">
+      <div class="month-nav-bar light">
+        <button type="button" class="month-arrow-btn" data-month-prev aria-label="Mês anterior">‹</button>
+        <button type="button" class="month-center-btn" data-month-open>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <span class="month-label-text">Novembro 2026</span>
+        </button>
+        <button type="button" class="month-arrow-btn" data-month-next aria-label="Próximo mês">›</button>
+      </div>
+
       <div>
         <p style="font-size: 12px; color: #71717A; margin-bottom: 8px;">Filtrar movimentações por TAG:</p>
         <div id="historyTagFilterRow" class="filter-chips-row"></div>
@@ -1218,7 +1722,31 @@
   </div>
 
   <!-- ==================================================================== -->
-  <!-- MODAL 1: CONFIRMAÇÃO DE ALTERAÇÃO DE SALÁRIO (ETAPA 1 OBRIGATÓRIA)   -->
+  <!-- MODAL: CALENDÁRIO MENSAL (PARTE 3)                                   -->
+  <!-- ==================================================================== -->
+  <div id="modalMonthCalendar" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="calendar-year-row">
+        <button type="button" id="calYearPrev" class="month-arrow-btn" style="background:#F0F0F2;color:#1E1B4B;" aria-label="Ano anterior">‹</button>
+        <span id="calYearDisplay" class="calendar-year-label">2026</span>
+        <button type="button" id="calYearNext" class="month-arrow-btn" style="background:#F0F0F2;color:#1E1B4B;" aria-label="Próximo ano">›</button>
+      </div>
+
+      <div id="calMonthsGrid" class="calendar-months-grid"></div>
+
+      <div class="modal-actions" style="margin-top: 8px;">
+        <button type="button" id="btnCalToday" class="btn-secondary" style="background:#EEF2FF;color:#1E1B4B;font-size:13px;">
+          Hoje / Mês Atual
+        </button>
+        <button type="button" class="btn-secondary" data-close-modal style="flex:0.6;font-size:13px;">
+          Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL 1: CONFIRMAÇÃO DE ALTERAÇÃO DE SALÁRIO (ETAPA 1)               -->
   <!-- ==================================================================== -->
   <div id="modalConfirmSalary" class="modal-backdrop">
     <div class="modal-box" style="text-align: center;">
@@ -1227,6 +1755,7 @@
       </div>
       <h3 class="modal-title">Deseja alterar o seu salário atual?</h3>
       <p class="modal-subtitle">
+        Competência: <strong id="confirmSalaryMonthText">Novembro 2026</strong><br />
         Salário base configurado: <strong id="confirmCurrentSalaryText">R$ 0,00</strong>
       </p>
       <div class="modal-actions">
@@ -1237,13 +1766,13 @@
   </div>
 
   <!-- ==================================================================== -->
-  <!-- MODAL 2: INPUT DO NOVO SALÁRIO BASE (ETAPA 2 OBRIGATÓRIA)            -->
+  <!-- MODAL 2: INPUT DO NOVO SALÁRIO BASE (ETAPA 2)                        -->
   <!-- ==================================================================== -->
   <div id="modalEditSalary" class="modal-backdrop">
     <div class="modal-box">
       <h3 class="modal-title">Alterar Salário Base</h3>
       <p class="modal-subtitle">
-        Informe o novo valor do seu salário base. O Saldo Atual Disponível será recalculado imediatamente.
+        Competência: <strong id="editSalaryMonthText">Novembro 2026</strong>. O Saldo Atual Disponível será recalculado imediatamente.
       </p>
       <form id="formEditSalary">
         <div class="form-group">
@@ -1259,69 +1788,102 @@
   </div>
 
   <!-- ==================================================================== -->
-  <!-- MODAL: NOVA DÍVIDA ("Pagar conta")                                   -->
+  <!-- MODAL: NOVA DÍVIDA (PARTE 2 — SALDO TOTAL, JÁ PAGO E PARCELAS)       -->
   <!-- ==================================================================== -->
   <div id="modalNewDebt" class="modal-backdrop">
     <div class="modal-box">
       <h3 class="modal-title">Nova Dívida</h3>
-      <p class="modal-subtitle">Cadastre uma conta ou dívida com data de vencimento e TAG.</p>
+
+      <div class="mode-switcher">
+        <button type="button" class="mode-switch-btn active" id="btnDebtModeBalance">Por Valor Total</button>
+        <button type="button" class="mode-switch-btn" id="btnDebtModeSimple">Conta Fixa / Simples</button>
+      </div>
+
       <form id="formNewDebt">
         <div class="form-group">
-          <label class="form-label">Descrição</label>
-          <input type="text" required id="inputDebtDesc" class="form-input" placeholder="Ex: Internet, Energia, Condomínio..." />
+          <label class="form-label">Nome / Descrição da Dívida</label>
+          <input type="text" required id="inputDebtDesc" class="form-input" placeholder="Ex: Cartão, Empréstimo, Internet..." />
         </div>
-        <div class="form-row-2">
+
+        <!-- MODO 1: POR VALOR TOTAL, VALOR JÁ PAGO E PRÓXIMAS PARCELAS -->
+        <div id="debtBalanceFieldsSection">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">Valor Total da Dívida (R$)</label>
+              <input type="number" step="0.01" min="0.01" required id="inputDebtTotalAmount" class="form-input" placeholder="2000.00" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Quanto já foi pago (R$)</label>
+              <input type="number" step="0.01" min="0" id="inputDebtAlreadyPaid" class="form-input" value="0" placeholder="0.00" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Valor das Próximas Parcelas (R$)</label>
+            <input type="number" step="0.01" min="0.01" required id="inputDebtNextInstallment" class="form-input" placeholder="250.00" />
+          </div>
+
+          <!-- PREVIEW AUTOMÁTICO EM TEMPO REAL -->
+          <div id="debtBalancePreviewBox" class="debt-preview-box"></div>
+        </div>
+
+        <!-- MODO 2: CONTA FIXA / SIMPLES (OU PARCELA X DE Y) -->
+        <div id="debtSimpleFieldsSection" style="display: none;">
           <div class="form-group">
             <label class="form-label">Valor (R$)</label>
-            <input type="number" step="0.01" min="0.01" required id="inputDebtAmount" class="form-input" placeholder="120.00" />
+            <input type="number" step="0.01" min="0.01" id="inputDebtAmount" class="form-input" placeholder="120.00" />
           </div>
-          <div class="form-group">
-            <label class="form-label">Vencimento</label>
-            <input type="date" required id="inputDebtDueDate" class="form-input" />
+
+          <div class="form-group" style="background:#F8F9FA;border:1px solid #E4E4E7;border-radius:12px;padding:11px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;font-weight:600;color:#1A1A1A;user-select:none;">
+              <input type="checkbox" id="inputDebtIsInstallment" style="width:16px;height:16px;accent-color:#1E1B4B;cursor:pointer;" />
+              <span>Controlar por Parcela X de Y?</span>
+            </label>
+
+            <div id="debtInstallmentsFieldsRow" class="form-row-2" style="display:none;margin-top:10px;">
+              <div>
+                <label class="form-label" style="font-size:11px;">Parcela Atual</label>
+                <input type="number" min="1" max="360" id="inputDebtCurrentInstallment" class="form-input" value="1" placeholder="Ex: 3" />
+              </div>
+              <div>
+                <label class="form-label" style="font-size:11px;">Total de Parcelas</label>
+                <input type="number" min="2" max="360" id="inputDebtTotalInstallments" class="form-input" value="10" placeholder="Ex: 10" />
+              </div>
+            </div>
           </div>
         </div>
+
+        <!-- DATA DE VENCIMENTO COMPARTILHADA -->
+        <div class="form-group">
+          <label class="form-label">Data de Vencimento</label>
+          <input type="date" required id="inputDebtDueDate" class="form-input" />
+        </div>
+
+        <div id="debtDueDateMonthHint" class="month-hint-pill"></div>
+
         <div class="form-group">
           <label class="form-label">Escolha de Ícone</label>
           <div class="icon-picker-grid" id="debtIconPicker">
-            <button type="button" class="icon-pick-btn selected" data-icon="wifi">Wi-Fi</button>
+            <button type="button" class="icon-pick-btn" data-icon="wifi">Wi-Fi</button>
             <button type="button" class="icon-pick-btn" data-icon="home">Casa</button>
-            <button type="button" class="icon-pick-btn" data-icon="card">Cartão</button>
+            <button type="button" class="icon-pick-btn selected" data-icon="card">Cartão</button>
             <button type="button" class="icon-pick-btn" data-icon="other">Outros</button>
           </div>
         </div>
+
         <div class="form-group">
           <label class="form-label">TAG Personalizada</label>
-          <input type="text" required id="inputDebtTag" class="form-input" value="Casa" placeholder="Ex: Casa, Moradia, Cartão..." />
+          <input type="text" required id="inputDebtTag" class="form-input" value="Cartão" placeholder="Ex: Cartão, Casa, Empréstimo..." />
           <div class="tag-suggestions">
-            <button type="button" class="tag-sug-btn" data-target="inputDebtTag" data-val="Casa">#Casa</button>
-            <button type="button" class="tag-sug-btn" data-target="inputDebtTag" data-val="Moradia">#Moradia</button>
             <button type="button" class="tag-sug-btn" data-target="inputDebtTag" data-val="Cartão">#Cartão</button>
+            <button type="button" class="tag-sug-btn" data-target="inputDebtTag" data-val="Casa">#Casa</button>
+            <button type="button" class="tag-sug-btn" data-target="inputDebtTag" data-val="Empréstimo">#Empréstimo</button>
+            <button type="button" class="tag-sug-btn" data-target="inputDebtTag" data-val="Moradia">#Moradia</button>
             <button type="button" class="tag-sug-btn" data-target="inputDebtTag" data-val="Fixas">#Fixas</button>
           </div>
         </div>
 
-        <!-- Controle de Parcelas / Tempo de Vida da Dívida -->
-        <div class="form-group" style="background:#F8F9FA;border:1px solid #E4E4E7;border-radius:12px;padding:12px;">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:#1A1A1A;user-select:none;">
-            <input type="checkbox" id="inputDebtIsInstallment" style="width:16px;height:16px;accent-color:#1E1B4B;cursor:pointer;" />
-            <span>É uma dívida parcelada / com tempo de vida?</span>
-          </label>
-
-          <div id="debtInstallmentsFieldsRow" class="form-row-2" style="display:none;margin-top:12px;">
-            <div>
-              <label class="form-label" style="font-size:11px;">Parcela Atual</label>
-              <input type="number" min="1" max="360" id="inputDebtCurrentInstallment" class="form-input" value="1" placeholder="Ex: 3" style="background:#FFFFFF;" />
-            </div>
-            <div>
-              <label class="form-label" style="font-size:11px;">Total de Parcelas</label>
-              <input type="number" min="2" max="360" id="inputDebtTotalInstallments" class="form-input" value="10" placeholder="Ex: 10" style="background:#FFFFFF;" />
-            </div>
-          </div>
-
-          <p id="debtSingleInstallmentHint" style="font-size:11px;color:#71717A;margin-top:6px;">
-            Conta fixa contínua (ex: Aluguel, Internet) ou parcela única (<code>total_installments = 1</code>).
-          </p>
-        </div>
+        <div id="debtFormErrorBox" class="auth-error-box"></div>
 
         <div class="modal-actions">
           <button type="button" class="btn-secondary" data-close-modal>Cancelar</button>
@@ -1332,7 +1894,7 @@
   </div>
 
   <!-- ==================================================================== -->
-  <!-- MODAL: NOVO GASTO OU NOVA ENTRADA EXTRA ("Novo gasto")               -->
+  <!-- MODAL: NOVO GASTO OU NOVA ENTRADA EXTRA                              -->
   <!-- ==================================================================== -->
   <div id="modalExpenseOrIncome" class="modal-backdrop">
     <div class="modal-box">
@@ -1340,6 +1902,8 @@
         <button type="button" class="mode-switch-btn active" id="switchModeExpense">Novo Gasto</button>
         <button type="button" class="mode-switch-btn" id="switchModeIncome">Nova Entrada Extra</button>
       </div>
+
+      <div id="entryMonthHint" class="month-hint-pill" style="text-align:center;"></div>
 
       <!-- Formulário Novo Gasto -->
       <form id="formNewExpense">
@@ -1381,7 +1945,7 @@
       <!-- Formulário Nova Entrada Extra -->
       <form id="formNewIncome" style="display: none;">
         <h3 class="modal-title">Nova Entrada Extra</h3>
-        <p class="modal-subtitle">Soma ao total disponível sem apagar o salário base.</p>
+        <p class="modal-subtitle">Soma ao total disponível do mês selecionado sem apagar o salário base.</p>
         <div class="form-group">
           <label class="form-label">Descrição</label>
           <input type="text" required id="inputIncomeDesc" class="form-input" placeholder="Ex: Freelance, Pix recebido..." />
@@ -1407,56 +1971,58 @@
     </div>
   </div>
 
-  <!-- ==================================================================== -->
-  <!-- MODAL: CONFIGURAR SUPABASE (OPCIONAL)                                -->
-  <!-- ==================================================================== -->
-  <div id="modalSupabaseConfig" class="modal-backdrop">
-    <div class="modal-box">
-      <h3 class="modal-title">Conexão Supabase</h3>
-      <p class="modal-subtitle">
-        Conecte usando <code>NEXT_PUBLIC_SUPABASE_URL</code> e <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>. Sem variáveis preenchidas, o app funciona 100% com estado local.
-      </p>
-      <form id="formSupabaseConfig">
-        <div class="form-group">
-          <label class="form-label">NEXT_PUBLIC_SUPABASE_URL</label>
-          <input type="url" id="inputSbUrl" class="form-input" placeholder="https://yjprrjczrhulkkdqsrrb.supabase.co" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY / ANON_KEY</label>
-          <input type="text" id="inputSbKey" class="form-input" placeholder="sb_publishable_..." />
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" data-close-modal>Cancelar</button>
-          <button type="submit" class="btn-primary">Salvar e Conectar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
   <script>
     // =========================================================================
-    // CREDENCIAIS SUPABASE PRÉ-CONFIGURADAS (COMPATÍVEL NEXT.JS / VITE / PWA)
+    // CONFIGURAÇÃO SUPABASE (PUBLISHABLE KEY OFICIAL + RLS ATIVO)
     // =========================================================================
     const DEFAULT_SUPABASE_URL = 'https://yjprrjczrhulkkdqsrrb.supabase.co';
     const DEFAULT_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_cN20WkbMnqUuWdXdZY3vIw_0C7wwV8X';
-    const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_cN20WkbMnqUuWdXdZY3vIw_0C7wwV8X';
 
-    window.__ENV__ = Object.assign({
-      NEXT_PUBLIC_SUPABASE_URL: DEFAULT_SUPABASE_URL,
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: DEFAULT_SUPABASE_PUBLISHABLE_KEY,
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: DEFAULT_SUPABASE_ANON_KEY,
-      VITE_SUPABASE_URL: DEFAULT_SUPABASE_URL,
-      VITE_SUPABASE_PUBLISHABLE_KEY: DEFAULT_SUPABASE_PUBLISHABLE_KEY,
-      VITE_SUPABASE_ANON_KEY: DEFAULT_SUPABASE_ANON_KEY,
-    }, window.__ENV__ || {});
+    const PT_MONTHS_FULL = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+    ];
+    const PT_MONTHS_SHORT = [
+      'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+      'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
+    ];
+
+    function escapeHTML(str) {
+      return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
 
     // =========================================================================
-    // UTILITÁRIOS DE DATA E MOEDA
+    // UTILITÁRIOS DE DATA, MOEDA E CÁLCULO DE DÍVIDAS
     // =========================================================================
     function getCurrentMonthYear() {
       const now = new Date();
       const y = now.getFullYear();
       const m = String(now.getMonth() + 1).padStart(2, '0');
+      return `${y}-${m}`;
+    }
+
+    function parseMonthYear(monthYear) {
+      const parts = String(monthYear || getCurrentMonthYear()).split('-').map(Number);
+      const year = parts[0] || new Date().getFullYear();
+      const monthIndex = Math.max(0, Math.min(11, (parts[1] || 1) - 1));
+      return { year, monthIndex };
+    }
+
+    function formatMonthYearLabel(monthYear) {
+      const { year, monthIndex } = parseMonthYear(monthYear);
+      return `${PT_MONTHS_FULL[monthIndex]} ${year}`;
+    }
+
+    function shiftMonthYear(monthYear, deltaMonths) {
+      const { year, monthIndex } = parseMonthYear(monthYear);
+      const shifted = new Date(year, monthIndex + deltaMonths, 1);
+      const y = shifted.getFullYear();
+      const m = String(shifted.getMonth() + 1).padStart(2, '0');
       return `${y}-${m}`;
     }
 
@@ -1467,6 +2033,18 @@
       const m = String(target.getMonth() + 1).padStart(2, '0');
       const d = String(target.getDate()).padStart(2, '0');
       return `${y}-${m}-${d}`;
+    }
+
+    function getDefaultDueDateForMonth(monthYear) {
+      const current = getCurrentMonthYear();
+      if (monthYear === current) {
+        const candidate = getOffsetDateString(3);
+        if (candidate.startsWith(current)) return candidate;
+        return getOffsetDateString(0);
+      }
+      const { year, monthIndex } = parseMonthYear(monthYear);
+      const m = String(monthIndex + 1).padStart(2, '0');
+      return `${year}-${m}-10`;
     }
 
     function formatBRL(val, show = true) {
@@ -1490,45 +2068,20 @@
 
     function calculateDueStatus(dueDateStr, paid) {
       if (paid) {
-        return {
-          label: 'Pago ✓',
-          bg: '#DCFCE7',
-          text: '#15803D',
-          border: '#BBF7D0',
-        };
+        return { label: 'Pago ✓', bg: '#DCFCE7', text: '#15803D', border: '#BBF7D0' };
       }
       const diffDays = getDaysUntilDue(dueDateStr);
       if (diffDays === null) {
-        return {
-          label: 'Pendente',
-          bg: '#FFEDD5',
-          text: '#C2410C',
-          border: '#FED7AA',
-        };
+        return { label: 'Pendente', bg: '#FFEDD5', text: '#C2410C', border: '#FED7AA' };
       }
       if (diffDays < 0) {
-        return {
-          label: 'Atrasado',
-          bg: '#FEE2E2',
-          text: '#B91C1C',
-          border: '#FECACA',
-        };
+        return { label: 'Atrasado', bg: '#FEE2E2', text: '#B91C1C', border: '#FECACA' };
       }
       if (diffDays === 0) {
-        return {
-          label: 'Vence hoje',
-          bg: '#FEF9C3',
-          text: '#A16207',
-          border: '#FDE68A',
-        };
+        return { label: 'Vence hoje', bg: '#FEF9C3', text: '#A16207', border: '#FDE68A' };
       }
       if (diffDays === 1) {
-        return {
-          label: 'Vence amanhã',
-          bg: '#FEF9C3',
-          text: '#A16207',
-          border: '#FDE68A',
-        };
+        return { label: 'Vence amanhã', bg: '#FEF9C3', text: '#A16207', border: '#FDE68A' };
       }
       return {
         label: `Vence em ${diffDays} dias`,
@@ -1538,20 +2091,13 @@
       };
     }
 
-    const PT_MONTHS_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-
     function calculateInstallmentInfo(dueDateStr, paid, currentInstallment, totalInstallments) {
       const total = Math.max(1, Number(totalInstallments || 1));
       const current = Math.max(1, Math.min(total, Number(currentInstallment || 1)));
       const isInstallment = total > 1;
-
-      // Quantas faltam:
-      // - se paid = true: total_installments - current_installment
-      // - se paid = false: total_installments - current_installment + 1
       const remaining = paid
         ? Math.max(0, total - current)
         : Math.max(0, total - current + 1);
-
       const paidCount = paid ? current : Math.max(0, current - 1);
       const progressPct = total > 0 ? Math.min(100, Math.round((paidCount / total) * 100)) : 0;
       const isLastInstallmentPaid = isInstallment && current >= total && paid;
@@ -1584,6 +2130,53 @@
       };
     }
 
+    // PARTE 2: Cálculo por Valor Total, Valor Já Pago e Próximas Parcelas
+    function calculateDebtBalanceInfo(dueDateStr, installmentAmount, totalDebtAmount, alreadyPaidAmount) {
+      const totalDebt = Math.max(0, Number(totalDebtAmount || 0));
+      const isBalanceDebt = totalDebt > 0;
+      const alreadyPaid = Math.max(0, Math.min(totalDebt, Number(alreadyPaidAmount || 0)));
+      const remainingBalance = Math.max(0, Number((totalDebt - alreadyPaid).toFixed(2)));
+      const instVal = Math.max(0, Number(installmentAmount || 0));
+
+      const remainingInstallments =
+        remainingBalance <= 0.004
+          ? 0
+          : instVal > 0
+          ? Math.ceil(remainingBalance / instVal)
+          : 0;
+
+      const progressPct =
+        totalDebt > 0 ? Math.min(100, Math.round((alreadyPaid / totalDebt) * 100)) : 0;
+      const isFullyPaid = isBalanceDebt && (alreadyPaid >= totalDebt || remainingBalance <= 0.004);
+
+      let baseYear;
+      let baseMonthIndex;
+      if (dueDateStr && dueDateStr.includes('-')) {
+        const parts = dueDateStr.split('-').map(Number);
+        baseYear = parts[0] || new Date().getFullYear();
+        baseMonthIndex = (parts[1] || 1) - 1;
+      } else {
+        const now = new Date();
+        baseYear = now.getFullYear();
+        baseMonthIndex = now.getMonth();
+      }
+
+      const endDate = new Date(baseYear, baseMonthIndex + remainingInstallments, 1);
+      const endMonthYear = `${PT_MONTHS_SHORT[endDate.getMonth()]}/${endDate.getFullYear()}`;
+
+      return {
+        isBalanceDebt,
+        totalDebt,
+        alreadyPaid,
+        remainingBalance,
+        installmentAmount: instVal,
+        remainingInstallments,
+        progressPct,
+        isFullyPaid,
+        endMonthYear,
+      };
+    }
+
     function normalizeTextNoAccents(value) {
       return String(value || '')
         .normalize('NFD')
@@ -1591,7 +2184,7 @@
         .toLowerCase();
     }
 
-    function isFuelTransaction(tx, targetMonthYear = getCurrentMonthYear()) {
+    function isFuelTransaction(tx, targetMonthYear) {
       if (tx.month_year && tx.month_year !== targetMonthYear) {
         return false;
       }
@@ -1605,156 +2198,309 @@
       );
     }
 
-    function formatTransactionDateBR(dueDateStr, createdAtStr) {
-      if (dueDateStr && /^\d{4}-\d{2}-\d{2}/.test(dueDateStr)) {
-        const [year, month, day] = dueDateStr.slice(0, 10).split('-');
-        return `${day}/${month}/${year}`;
+    function normalizeLoginIdentifier(rawInput) {
+      const trimmed = String(rawInput || '').trim().toLowerCase();
+      if (!trimmed) return '';
+      if (trimmed.includes('@')) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) ? trimmed : '';
       }
-      if (createdAtStr) {
-        if (/^\d{4}-\d{2}-\d{2}$/.test(createdAtStr)) {
-          const [year, month, day] = createdAtStr.split('-');
-          return `${day}/${month}/${year}`;
-        }
-        const parsed = new Date(createdAtStr);
-        if (!isNaN(parsed.getTime())) {
-          const d = String(parsed.getDate()).padStart(2, '0');
-          const m = String(parsed.getMonth() + 1).padStart(2, '0');
-          const y = parsed.getFullYear();
-          return `${d}/${m}/${y}`;
-        }
-      }
-      const now = new Date();
-      return `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+      const cleanUser = trimmed
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9._-]/g, '');
+      if (cleanUser.length < 2) return '';
+      return `${cleanUser}@rastga.app`;
     }
 
-    function getTransactionSortTimestamp(dueDateStr, createdAtStr) {
-      if (dueDateStr && /^\d{4}-\d{2}-\d{2}/.test(dueDateStr)) {
-        const [year, month, day] = dueDateStr.slice(0, 10).split('-').map(Number);
-        const dueTime = new Date(year, (month || 1) - 1, day || 1, 12, 0, 0).getTime();
-        if (!isNaN(dueTime)) return dueTime;
+    function translateAuthError(rawMessage) {
+      const msg = String(rawMessage || '').toLowerCase();
+      if (msg.includes('invalid login credentials')) {
+        return 'Usuário/e-mail ou senha incorretos. Verifique seus dados e tente novamente.';
       }
-      if (createdAtStr) {
-        const createdTime = new Date(createdAtStr).getTime();
-        if (!isNaN(createdTime)) return createdTime;
+      if (msg.includes('user already registered') || msg.includes('already been registered')) {
+        return 'Este usuário ou e-mail já está cadastrado. Clique em "Voltar para Entrar" para acessar.';
       }
-      return 0;
+      if (msg.includes('password should be at least') || msg.includes('weak password')) {
+        return 'A senha deve ter pelo menos 6 caracteres.';
+      }
+      if (
+        msg.includes('unable to validate email') ||
+        msg.includes('invalid email') ||
+        msg.includes('email address')
+      ) {
+        return 'Informe um usuário (mín. 2 caracteres) ou um e-mail válido.';
+      }
+      if (msg.includes('email not confirmed')) {
+        return 'Conta ainda não confirmada. Tente entrar novamente em instantes.';
+      }
+      if (msg.includes('rate limit') || msg.includes('too many requests')) {
+        return 'Muitas tentativas seguidas. Aguarde alguns instantes e tente novamente.';
+      }
+      return rawMessage || 'Não foi possível concluir a autenticação. Tente novamente.';
     }
 
     // =========================================================================
-    // ZERO DADOS AUTOMÁTICOS (INICIALIZAÇÃO 100% LIMPA)
+    // ESTADO DA APLICAÇÃO
     // =========================================================================
+    const LS_GOALS = 'financas_pwa_goals_v4_zero_seed';
+
     let state = {
+      session: null,
+      authMode: 'login', // 'login' | 'register'
+      selectedMonthYear: getCurrentMonthYear(),
+      calendarPickerYear: parseMonthYear(getCurrentMonthYear()).year,
+      loadingMonth: false,
       incomes: [],
       transactions: [],
       goals: [],
       showValues: true,
-      activePage: 'home', // 'home' | 'debts' | 'expenses' | 'reports' | 'goals' | 'history'
+      activePage: 'home',
+      debtFormMode: 'balance', // 'balance' | 'simple'
       debtStatusFilter: 'all',
       debtTagFilter: 'Todas',
       expenseTagFilter: 'Todas',
       historyTagFilter: 'Todas',
-      selectedDebtIcon: 'wifi',
+      selectedDebtIcon: 'card',
       selectedExpenseIcon: 'cart',
-      fuelAccordionOpen: false,
       supabaseClient: null,
       usingSupabase: false,
     };
 
-    const LS_INCOMES = 'financas_pwa_incomes_v4_zero_seed';
-    const LS_TX = 'financas_pwa_transactions_v4_zero_seed';
-    const LS_GOALS = 'financas_pwa_goals_v4_zero_seed';
-    const LS_SB_URL = 'NEXT_PUBLIC_SUPABASE_URL';
-    const LS_SB_KEY = 'NEXT_PUBLIC_SUPABASE_ANON_KEY';
-
-    function saveLocalState() {
-      try {
-        localStorage.setItem(LS_INCOMES, JSON.stringify(state.incomes));
-        localStorage.setItem(LS_TX, JSON.stringify(state.transactions));
-        localStorage.setItem(LS_GOALS, JSON.stringify(state.goals));
-      } catch (e) {}
+    let toastTimer = null;
+    function showToast(message) {
+      const el = document.getElementById('appToast');
+      if (!el) return;
+      el.textContent = message;
+      el.style.display = 'block';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        el.style.display = 'none';
+      }, 3200);
     }
 
-    function loadLocalState() {
-      try {
-        localStorage.removeItem('financas_pwa_incomes_v1');
-        localStorage.removeItem('financas_pwa_transactions_v1');
-        localStorage.removeItem('financas_pwa_goals_v1');
-        localStorage.removeItem('financas_pwa_incomes_v2_clean');
-        localStorage.removeItem('financas_pwa_transactions_v2_clean');
-        localStorage.removeItem('financas_pwa_incomes_v3_supabase');
-        localStorage.removeItem('financas_pwa_transactions_v3_supabase');
-        localStorage.removeItem('financas_pwa_incomes_v3_sb');
-        localStorage.removeItem('financas_pwa_transactions_v3_sb');
+    function getGoalsStorageKey() {
+      const uid = state.session && state.session.user && state.session.user.id;
+      return uid ? `financas_pwa_goals_uid_${uid}` : LS_GOALS;
+    }
 
-        const inc = JSON.parse(localStorage.getItem(LS_INCOMES) || 'null');
-        const tx = JSON.parse(localStorage.getItem(LS_TX) || 'null');
-        const gl = JSON.parse(localStorage.getItem(LS_GOALS) || 'null');
-        if (Array.isArray(inc)) state.incomes = inc;
-        if (Array.isArray(tx)) state.transactions = tx;
+    function loadGoalsLocal() {
+      state.goals = [];
+      try {
+        const gl = JSON.parse(localStorage.getItem(getGoalsStorageKey()) || 'null');
         if (Array.isArray(gl)) state.goals = gl;
       } catch (e) {}
     }
 
-    async function initSupabase() {
-      const envUrl =
-        localStorage.getItem(LS_SB_URL) ||
-        (window.__ENV__ && (window.__ENV__.NEXT_PUBLIC_SUPABASE_URL || window.__ENV__.VITE_SUPABASE_URL)) ||
-        DEFAULT_SUPABASE_URL;
-      const envKey =
-        localStorage.getItem(LS_SB_KEY) ||
-        (window.__ENV__ && (
-          window.__ENV__.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-          window.__ENV__.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-          window.__ENV__.VITE_SUPABASE_PUBLISHABLE_KEY ||
-          window.__ENV__.VITE_SUPABASE_ANON_KEY
-        )) ||
-        DEFAULT_SUPABASE_PUBLISHABLE_KEY;
-
-      const currentMonthYear = getCurrentMonthYear();
-
-      if (envUrl && envKey && window.supabase && typeof window.supabase.createClient === 'function') {
-        try {
-          state.supabaseClient = window.supabase.createClient(envUrl, envKey);
-
-          // Leitura inicial filtrando pelo month_year atual (ZERO seed automático)
-          const [incRes, txRes] = await Promise.all([
-            state.supabaseClient
-              .from('incomes')
-              .select('*')
-              .eq('month_year', currentMonthYear)
-              .order('created_at', { ascending: true }),
-            state.supabaseClient
-              .from('transactions')
-              .select('*')
-              .eq('month_year', currentMonthYear)
-              .order('created_at', { ascending: false }),
-          ]);
-
-          if (!incRes.error && !txRes.error) {
-            state.usingSupabase = true;
-            state.incomes = (incRes.data || []).map(r => ({
-              ...r,
-              title: r.title || r.description || 'Entrada',
-              amount: Number(r.amount),
-            }));
-            state.transactions = (txRes.data || []).map(r => ({
-              ...r,
-              title: r.title || r.description || r.tag || 'Transação',
-              amount: Number(r.amount),
-              total_installments: Math.max(1, Number(r.total_installments || 1)),
-              current_installment: Math.max(1, Number(r.current_installment || 1)),
-            }));
-            saveLocalState();
-          }
-        } catch (err) {
-          state.usingSupabase = false;
-        }
-      }
-      renderAll();
+    function saveGoalsLocal() {
+      try {
+        localStorage.setItem(getGoalsStorageKey(), JSON.stringify(state.goals));
+      } catch (e) {}
     }
 
     // =========================================================================
-    // NAVEGAÇÃO ENTRE PÁGINAS E REGRA ESTRITA DO CABEÇALHO
+    // PARTE 1: CONTROLE DE TELA DE LOGIN / REGISTRO E SESSÃO SUPABASE AUTH
+    // =========================================================================
+    function setAuthError(msg) {
+      const box = document.getElementById('authErrorBox');
+      if (!msg) {
+        box.style.display = 'none';
+        box.textContent = '';
+      } else {
+        box.style.display = 'block';
+        box.textContent = msg;
+      }
+    }
+
+    function updateAuthModeUI() {
+      const isLogin = state.authMode === 'login';
+      document.getElementById('authCardTitle').textContent = isLogin
+        ? 'Acesse suas Finanças'
+        : 'Criar Nova Conta';
+      document.getElementById('authCardSubtitle').textContent = isLogin
+        ? 'Entre com seu usuário (ou e-mail) e senha para visualizar e gerenciar seus dados com segurança.'
+        : 'Escolha um nome de usuário (ou e-mail) e uma senha pessoal (mínimo 6 caracteres). Cada conta tem dados 100% independentes.';
+      document.getElementById('btnAuthSubmit').textContent = isLogin ? 'Entrar' : 'Registrar';
+      document.getElementById('authSwitchPrompt').textContent = isLogin
+        ? 'Ainda não tem uma conta?'
+        : 'Já possui uma conta?';
+      document.getElementById('btnAuthSwitchMode').textContent = isLogin
+        ? 'Registrar nova conta'
+        : 'Voltar para Entrar';
+      document.getElementById('inputAuthPassword').setAttribute(
+        'autocomplete',
+        isLogin ? 'current-password' : 'new-password'
+      );
+      setAuthError('');
+    }
+
+    function showAuthLockScreen() {
+      state.session = null;
+      state.incomes = [];
+      state.transactions = [];
+      state.goals = [];
+      state.usingSupabase = false;
+      closeAllModals();
+      document.getElementById('appShell').style.display = 'none';
+      document.getElementById('authLockOverlay').style.display = 'flex';
+      document.getElementById('authCheckingBox').style.display = 'none';
+      document.getElementById('authCardBox').style.display = 'block';
+      updateAuthModeUI();
+    }
+
+    async function unlockAppWithSession(session) {
+      state.session = session;
+      document.getElementById('authLockOverlay').style.display = 'none';
+      document.getElementById('appShell').style.display = 'flex';
+      loadGoalsLocal();
+      await loadMonthDataFromSupabase();
+    }
+
+    async function initSupabaseAndAuth() {
+      if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+        showAuthLockScreen();
+        setAuthError('Biblioteca do Supabase não carregada. Verifique sua conexão com a internet.');
+        return;
+      }
+
+      state.supabaseClient = window.supabase.createClient(
+        DEFAULT_SUPABASE_URL,
+        DEFAULT_SUPABASE_PUBLISHABLE_KEY,
+        {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+          },
+        }
+      );
+
+      // Escuta mudanças futuras de sessão (logout, expiração, novo login)
+      state.supabaseClient.auth.onAuthStateChange((event, nextSession) => {
+        if (event === 'SIGNED_OUT' || !nextSession) {
+          if (state.session) {
+            showAuthLockScreen();
+          }
+        }
+      });
+
+      try {
+        const { data, error } = await state.supabaseClient.auth.getSession();
+        if (!error && data && data.session) {
+          await unlockAppWithSession(data.session);
+        } else {
+          showAuthLockScreen();
+        }
+      } catch (err) {
+        showAuthLockScreen();
+      }
+    }
+
+    async function loadMonthDataFromSupabase() {
+      if (!state.supabaseClient || !state.session) return;
+      state.loadingMonth = true;
+      syncMonthSelectorLabels();
+
+      try {
+        const targetMonth = state.selectedMonthYear;
+        const [incRes, txRes] = await Promise.all([
+          state.supabaseClient
+            .from('incomes')
+            .select('*')
+            .eq('month_year', targetMonth)
+            .order('created_at', { ascending: true }),
+          state.supabaseClient
+            .from('transactions')
+            .select('*')
+            .eq('month_year', targetMonth)
+            .order('created_at', { ascending: false }),
+        ]);
+
+        if (!incRes.error && !txRes.error) {
+          state.usingSupabase = true;
+          state.incomes = (incRes.data || []).map(r => ({
+            ...r,
+            title: r.title || r.description || 'Entrada',
+            amount: Number(r.amount),
+          }));
+          state.transactions = (txRes.data || []).map(r => ({
+            ...r,
+            title: r.title || r.description || r.tag || 'Transação',
+            amount: Number(r.amount),
+            total_installments: Math.max(1, Number(r.total_installments || 1)),
+            current_installment: Math.max(1, Number(r.current_installment || 1)),
+            total_debt_amount: r.total_debt_amount != null ? Number(r.total_debt_amount) : null,
+            already_paid_amount: Number(r.already_paid_amount || 0),
+          }));
+        } else {
+          state.usingSupabase = false;
+        }
+      } catch (err) {
+        state.usingSupabase = false;
+      } finally {
+        state.loadingMonth = false;
+        renderAll();
+      }
+    }
+
+    async function handleLogout() {
+      if (state.supabaseClient) {
+        try {
+          await state.supabaseClient.auth.signOut();
+        } catch (e) {}
+      }
+      document.getElementById('inputAuthPassword').value = '';
+      state.activePage = 'home';
+      showAuthLockScreen();
+    }
+
+    // =========================================================================
+    // PARTE 3: CALENDÁRIO MENSAL
+    // =========================================================================
+    function syncMonthSelectorLabels() {
+      const label = formatMonthYearLabel(state.selectedMonthYear) + (state.loadingMonth ? ' •••' : '');
+      document.querySelectorAll('.month-label-text').forEach(el => {
+        el.textContent = label;
+      });
+    }
+
+    async function changeSelectedMonth(nextMonthYear) {
+      state.selectedMonthYear = nextMonthYear;
+      state.debtTagFilter = 'Todas';
+      state.expenseTagFilter = 'Todas';
+      state.historyTagFilter = 'Todas';
+      syncMonthSelectorLabels();
+      await loadMonthDataFromSupabase();
+    }
+
+    function renderMonthCalendarModal() {
+      document.getElementById('calYearDisplay').textContent = String(state.calendarPickerYear);
+      const realCurrent = getCurrentMonthYear();
+      const grid = document.getElementById('calMonthsGrid');
+      grid.innerHTML = PT_MONTHS_SHORT.map((name, idx) => {
+        const candidate = `${state.calendarPickerYear}-${String(idx + 1).padStart(2, '0')}`;
+        const isSel = candidate === state.selectedMonthYear;
+        const isCurr = candidate === realCurrent;
+        const cls = isSel ? 'selected' : isCurr ? 'current-real' : '';
+        return `<button type="button" class="calendar-month-cell ${cls}" data-pick-month="${idx}">${name}</button>`;
+      }).join('');
+
+      grid.querySelectorAll('[data-pick-month]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.getAttribute('data-pick-month'));
+          const m = String(idx + 1).padStart(2, '0');
+          closeAllModals();
+          changeSelectedMonth(`${state.calendarPickerYear}-${m}`);
+        });
+      });
+    }
+
+    function openMonthCalendarModal() {
+      state.calendarPickerYear = parseMonthYear(state.selectedMonthYear).year;
+      renderMonthCalendarModal();
+      openModal('modalMonthCalendar');
+    }
+
+    // =========================================================================
+    // NAVEGAÇÃO ENTRE PÁGINAS E REGRA DO CABEÇALHO
     // =========================================================================
     const PAGE_TITLES = {
       debts: 'Minhas Dívidas',
@@ -1767,7 +2513,6 @@
     function navigateToPage(pageName) {
       state.activePage = pageName;
 
-      // Regra: Cabeçalho do Salário EXCLUSIVO na tela "Início" ('home')
       const homeHeader = document.getElementById('homeSalaryHeader');
       const internalHeader = document.getElementById('internalCompactHeader');
 
@@ -1780,7 +2525,6 @@
         document.getElementById('internalHeaderTitle').textContent = PAGE_TITLES[pageName] || 'Página';
       }
 
-      // Mostrar apenas a página ativa
       document.getElementById('pageHome').style.display = pageName === 'home' ? 'flex' : 'none';
       document.getElementById('pageDebts').style.display = pageName === 'debts' ? 'flex' : 'none';
       document.getElementById('pageExpenses').style.display = pageName === 'expenses' ? 'flex' : 'none';
@@ -1788,7 +2532,6 @@
       document.getElementById('pageGoals').style.display = pageName === 'goals' ? 'flex' : 'none';
       document.getElementById('pageHistory').style.display = pageName === 'history' ? 'flex' : 'none';
 
-      // Atualizar estado ativo na Bottom Tab Bar
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-tab') === pageName);
       });
@@ -1874,7 +2617,107 @@
     }
 
     // =========================================================================
-    // RENDERIZAÇÃO COMPLETA DA INTERFACE + OS 5 RELATÓRIOS
+    // PREVIEW EM TEMPO REAL NO MODAL "NOVA DÍVIDA" (PARTE 2)
+    // =========================================================================
+    function updateDebtBalancePreview() {
+      const box = document.getElementById('debtBalancePreviewBox');
+      if (state.debtFormMode !== 'balance') {
+        box.style.display = 'none';
+        return;
+      }
+
+      const totalVal = parseFloat(document.getElementById('inputDebtTotalAmount').value);
+      const paidRaw = document.getElementById('inputDebtAlreadyPaid').value;
+      const paidVal = paidRaw === '' ? 0 : parseFloat(paidRaw);
+      const nextInstVal = parseFloat(document.getElementById('inputDebtNextInstallment').value);
+      const dueDate = document.getElementById('inputDebtDueDate').value;
+
+      if (isNaN(totalVal) || totalVal <= 0) {
+        box.style.display = 'none';
+        return;
+      }
+
+      const safePaid = isNaN(paidVal) || paidVal < 0 ? 0 : paidVal;
+      const safeInst = isNaN(nextInstVal) || nextInstVal <= 0 ? 0 : nextInstVal;
+      const info = calculateDebtBalanceInfo(dueDate, safeInst, totalVal, safePaid);
+
+      box.style.display = 'block';
+      if (safePaid > totalVal) {
+        box.innerHTML = `
+          <div style="font-size:12px;font-weight:600;color:#B91C1C;">
+            O valor já pago ultrapassa o valor total da dívida.
+          </div>
+        `;
+        return;
+      }
+
+      let forecastRows = '';
+      if (info.isFullyPaid) {
+        forecastRows = `
+          <div style="font-size:12px;font-weight:700;color:#15803D;margin-top:4px;">
+            Dívida 100% quitada 🎉
+          </div>
+        `;
+      } else {
+        const instLabel = safeInst > 0
+          ? `${info.remainingInstallments} ${info.remainingInstallments === 1 ? 'parcela' : 'parcelas'}`
+          : 'Informe o valor da parcela';
+        const quitRow = safeInst > 0
+          ? `<div class="debt-preview-row" style="margin-bottom:0;">
+              <span style="color:#52525B;">Previsão de Quitação</span>
+              <strong style="color:#1E1B4B;">Quitação prevista: ${info.endMonthYear}</strong>
+            </div>`
+          : '';
+        forecastRows = `
+          <div class="debt-preview-row">
+            <span style="color:#52525B;">Parcelas Restantes</span>
+            <strong style="color:#1A1A1A;">${instLabel}</strong>
+          </div>
+          ${quitRow}
+        `;
+      }
+
+      box.innerHTML = `
+        <div class="debt-preview-row">
+          <span style="color:#1E1B4B;font-weight:600;">Saldo Restante</span>
+          <strong style="color:#1E1B4B;font-size:13px;">${formatBRL(info.remainingBalance, true)}</strong>
+        </div>
+        ${forecastRows}
+        <div class="bar-track" style="height:6px;background:#C7D2FE;margin-top:8px;">
+          <div class="bar-fill-cherry" style="width:${info.progressPct}%;"></div>
+        </div>
+      `;
+    }
+
+    function updateDebtDueDateHint() {
+      const dueDate = document.getElementById('inputDebtDueDate').value;
+      const hintEl = document.getElementById('debtDueDateMonthHint');
+      if (dueDate && /^\d{4}-\d{2}/.test(dueDate) && dueDate.slice(0, 7) !== state.selectedMonthYear) {
+        hintEl.style.display = 'block';
+        hintEl.innerHTML = `Mês de competência pela data de vencimento: <strong>${formatMonthYearLabel(dueDate.slice(0, 7))}</strong>`;
+      } else {
+        hintEl.style.display = 'none';
+      }
+    }
+
+    function setDebtFormMode(mode) {
+      state.debtFormMode = mode;
+      const isBalance = mode === 'balance';
+      document.getElementById('btnDebtModeBalance').classList.toggle('active', isBalance);
+      document.getElementById('btnDebtModeSimple').classList.toggle('active', !isBalance);
+      document.getElementById('debtBalanceFieldsSection').style.display = isBalance ? 'block' : 'none';
+      document.getElementById('debtSimpleFieldsSection').style.display = isBalance ? 'none' : 'block';
+
+      document.getElementById('inputDebtTotalAmount').required = isBalance;
+      document.getElementById('inputDebtNextInstallment').required = isBalance;
+      document.getElementById('inputDebtAmount').required = !isBalance;
+
+      document.getElementById('debtFormErrorBox').style.display = 'none';
+      updateDebtBalancePreview();
+    }
+
+    // =========================================================================
+    // RENDERIZAÇÃO COMPLETA DA INTERFACE + RELATÓRIOS
     // =========================================================================
     function getBaseSalary() {
       const base = state.incomes.find(i => i.is_base_salary);
@@ -1889,23 +2732,59 @@
 
     function renderDebtCardHTML(debt) {
       const status = calculateDueStatus(debt.due_date, debt.paid);
+      const balInfo = calculateDebtBalanceInfo(
+        debt.due_date,
+        debt.amount,
+        debt.total_debt_amount,
+        debt.already_paid_amount
+      );
       const instInfo = calculateInstallmentInfo(
         debt.due_date,
         debt.paid,
         debt.current_installment,
         debt.total_installments
       );
+
+      const safeTitle = escapeHTML(debt.title || debt.description);
+      const safeTag = escapeHTML(debt.tag);
+
       const payButtonHTML = !debt.paid
         ? `<button type="button" class="pay-pill-btn" data-pay-id="${debt.id}">Pagar</button>`
-        : `<button type="button" data-unpay-id="${debt.id}" title="Reverter pagamento desta dívida" style="padding:5px 10px;border-radius:999px;border:1px solid rgba(30,27,75,0.25);background:#FFFFFF;color:#1E1B4B;font-size:12px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;transition:background 0.15s ease;" onmouseover="this.style.background='#EEF2FF'" onmouseout="this.style.background='#FFFFFF'">${getUndoIconSVG()}<span>Desfazer</span></button>`;
+        : `<button type="button" data-unpay-id="${debt.id}" title="Reverter pagamento desta dívida" style="padding:5px 10px;border-radius:999px;border:1px solid rgba(30,27,75,0.25);background:#FFFFFF;color:#1E1B4B;font-size:12px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;transition:background 0.15s ease;">${getUndoIconSVG()}<span>Desfazer</span></button>`;
 
-      let installmentSectionHTML = '';
-      if (instInfo.isInstallment) {
+      let trackerSectionHTML = '';
+
+      // PARTE 2: Dívida com Saldo Total e Valor Já Pago (total_debt_amount > 0)
+      if (balInfo.isBalanceDebt) {
+        const forecastHTML = balInfo.isFullyPaid
+          ? `<span style="background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:600;">Dívida 100% quitada 🎉</span>`
+          : `<span style="color:#71717A;font-size:11px;font-weight:500;">Quita em <strong style="color:#1A1A1A;">${balInfo.endMonthYear}</strong> (${balInfo.remainingInstallments} ${balInfo.remainingInstallments === 1 ? 'parcela restante' : 'parcelas restantes'})</span>`;
+
+        trackerSectionHTML = `
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F1F5F9;display:flex;flex-direction:column;gap:6px;width:100%;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:11.5px;">
+              <span style="color:#52525B;">
+                Pago: <strong style="color:#1A1A1A;">${formatBRL(balInfo.alreadyPaid, state.showValues)}</strong> de ${formatBRL(balInfo.totalDebt, state.showValues)}
+              </span>
+              <strong style="color:#1E1B4B;">
+                Falta: ${formatBRL(balInfo.remainingBalance, state.showValues)}
+              </strong>
+            </div>
+            <div style="width:100%;height:6px;background:#E4E4E7;border-radius:999px;overflow:hidden;">
+              <div style="width:${balInfo.progressPct}%;height:100%;background:linear-gradient(90deg, #1E1B4B 0%, #2A1B4E 100%);border-radius:999px;transition:width 0.3s ease;"></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+              ${forecastHTML}
+              <span style="font-size:11px;font-weight:700;color:#1E1B4B;">${balInfo.progressPct}%</span>
+            </div>
+          </div>
+        `;
+      } else if (instInfo.isInstallment) {
         const remainingBadgeHTML = instInfo.isLastInstallmentPaid
           ? `<span style="background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:600;">Última parcela paga / Dívida quitada 🎉</span>`
           : `<span style="color:#52525B;font-size:11px;font-weight:500;">• ${instInfo.remaining === 1 ? 'Falta 1 parcela' : `Faltam ${instInfo.remaining} parcelas`}</span>`;
 
-        installmentSectionHTML = `
+        trackerSectionHTML = `
           <div style="margin-top:10px;padding-top:9px;border-top:1px solid #F1F5F9;display:flex;flex-direction:column;gap:6px;width:100%;">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
               <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
@@ -1927,15 +2806,15 @@
 
       return `
         <div class="debt-card" style="flex-direction:column;align-items:stretch;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;">
             <div class="debt-left">
               ${getDebtIconHTML(debt.icon)}
               <div class="debt-info">
                 <div class="debt-title-row">
-                  <span class="debt-name">${debt.title || debt.description}</span>
-                  <span class="debt-tag-chip">#${debt.tag}</span>
+                  <span class="debt-name">${safeTitle}</span>
+                  <span class="debt-tag-chip">#${safeTag}</span>
                 </div>
-                <div class="debt-amount">${formatBRL(debt.amount, state.showValues)}</div>
+                <div class="debt-amount ${balInfo.isBalanceDebt ? 'highlighted' : ''}">${formatBRL(debt.amount, state.showValues)}</div>
               </div>
             </div>
             <div class="debt-right">
@@ -1943,17 +2822,19 @@
                 ${status.label}
               </span>
               ${payButtonHTML}
-              <button type="button" data-del-id="${debt.id}" title="Excluir dívida" style="background:none;border:none;color:#A1A1AA;cursor:pointer;padding:6px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;transition:color 0.15s;" onmouseover="this.style.color='#DC2626'" onmouseout="this.style.color='#A1A1AA'">
+              <button type="button" data-del-id="${debt.id}" title="Excluir dívida" style="background:none;border:none;color:#A1A1AA;cursor:pointer;padding:5px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;">
                 ${getTrashIconSVG()}
               </button>
             </div>
           </div>
-          ${installmentSectionHTML}
+          ${trackerSectionHTML}
         </div>
       `;
     }
 
     function renderExpenseCardHTML(exp) {
+      const safeTitle = escapeHTML(exp.title || exp.description || exp.tag);
+      const safeTag = escapeHTML(exp.tag);
       return `
         <div class="expense-card" style="justify-content:space-between;">
           <div style="display:flex;align-items:center;gap:10px;min-width:0;">
@@ -1961,12 +2842,12 @@
               ${getExpenseIconHTML(exp.icon)}
             </div>
             <div class="expense-meta">
-              <div style="font-size:13px;font-weight:600;color:#1A1A1A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${exp.title || exp.description || exp.tag}</div>
-              <div class="expense-tag">#${exp.tag}</div>
+              <div style="font-size:13px;font-weight:600;color:#1A1A1A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${safeTitle}</div>
+              <div class="expense-tag">#${safeTag}</div>
               <div class="expense-value">${formatBRL(exp.amount, state.showValues)}</div>
             </div>
           </div>
-          <button type="button" data-del-id="${exp.id}" title="Excluir gasto" style="background:none;border:none;color:#A1A1AA;cursor:pointer;padding:6px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0;transition:color 0.15s;" onmouseover="this.style.color='#DC2626'" onmouseout="this.style.color='#A1A1AA'">
+          <button type="button" data-del-id="${exp.id}" title="Excluir gasto" style="background:none;border:none;color:#A1A1AA;cursor:pointer;padding:5px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0;">
             ${getTrashIconSVG()}
           </button>
         </div>
@@ -1979,64 +2860,14 @@
       const allDebtsTotal = paidDebtsTotal + pendingDebtsTotal;
       const expensesTotal = expenses.reduce((acc, e) => acc + Number(e.amount), 0);
 
-      // 0. Novo Relatório: Gastos com Gasolina no Mês
-      const currentMonthYear = getCurrentMonthYear();
-      const fuelTxList = state.transactions
-        .filter(tx => isFuelTransaction(tx, currentMonthYear))
-        .slice()
-        .sort((a, b) => {
-          const diff =
-            getTransactionSortTimestamp(b.due_date, b.created_at) -
-            getTransactionSortTimestamp(a.due_date, a.created_at);
-          if (diff !== 0) return diff;
-          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-        });
-
+      // 0. Relatório de Gastos com Gasolina no Mês Selecionado
+      const fuelTxList = state.transactions.filter(tx =>
+        isFuelTransaction(tx, state.selectedMonthYear)
+      );
       const totalFuelSpent = fuelTxList.reduce((acc, item) => acc + Number(item.amount), 0);
-      const fuelCountEl = document.getElementById('repFuelCountText');
-      const fuelTotalEl = document.getElementById('repFuelTotalVal');
-      const fuelToggleLabelEl = document.getElementById('repFuelToggleLabel');
-      const fuelAccordionListEl = document.getElementById('repFuelAccordionList');
-
-      if (fuelCountEl) {
-        fuelCountEl.textContent = `${fuelTxList.length} ${fuelTxList.length === 1 ? 'abastecimento no mês' : 'abastecimentos no mês'}`;
-      }
-      if (fuelTotalEl) {
-        fuelTotalEl.textContent = formatBRL(totalFuelSpent, state.showValues);
-      }
-      if (fuelToggleLabelEl) {
-        fuelToggleLabelEl.textContent = state.fuelAccordionOpen
-          ? 'Ocultar abastecimentos ▴'
-          : 'Ver últimos abastecimentos ▾';
-      }
-      if (fuelAccordionListEl) {
-        fuelAccordionListEl.style.display = state.fuelAccordionOpen ? 'flex' : 'none';
-        if (fuelTxList.length === 0) {
-          fuelAccordionListEl.innerHTML = `<p style="font-size:12px;color:#71717A;text-align:center;padding:8px 0;">Nenhum abastecimento registrado neste mês.</p>`;
-        } else {
-          fuelAccordionListEl.innerHTML = fuelTxList
-            .map(tx => {
-              const dateBR = formatTransactionDateBR(tx.due_date, tx.created_at);
-              const titleText = tx.title || tx.description || tx.tag || 'Gasolina';
-              const tagText = tx.tag || 'Gasolina';
-              return `
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;background:#F8F9FA;border:1px solid #ECEEF2;">
-                  <div style="min-width:0;">
-                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                      <span style="font-size:12px;font-weight:600;color:#1A1A1A;">${titleText}</span>
-                      <span style="font-size:10px;padding:1px 6px;border-radius:6px;background:#FFFFFF;border:1px solid #E4E4E7;color:#52525B;font-weight:500;">#${tagText}</span>
-                    </div>
-                    <span style="display:block;font-size:11px;color:#71717A;margin-top:2px;">${dateBR}</span>
-                  </div>
-                  <strong style="font-size:12px;font-weight:700;color:#1E1B4B;flex-shrink:0;text-align:right;">
-                    ${formatBRL(tx.amount, state.showValues)}
-                  </strong>
-                </div>
-              `;
-            })
-            .join('');
-        }
-      }
+      document.getElementById('repFuelCountText').textContent =
+        `${fuelTxList.length} ${fuelTxList.length === 1 ? 'abastecimento no mês' : 'abastecimentos no mês'}`;
+      document.getElementById('repFuelTotalVal').textContent = formatBRL(totalFuelSpent, state.showValues);
 
       // 1. Termômetro de Sobra Real do Mês
       const alreadyOut = paidDebtsTotal + expensesTotal;
@@ -2070,7 +2901,7 @@
             return `
               <div class="report-row-item">
                 <div class="report-row-head">
-                  <span>#${tag}</span>
+                  <span>#${escapeHTML(tag)}</span>
                   <span>${formatBRL(val, state.showValues)} (${pctSalary}% da renda)</span>
                 </div>
                 <div class="bar-track">
@@ -2151,7 +2982,7 @@
             return `
               <div class="report-row-item">
                 <div class="report-row-head">
-                  <span>Entrada Extra (#${tag})</span>
+                  <span>Entrada Extra (#${escapeHTML(tag)})</span>
                   <span>+ ${formatBRL(amount, state.showValues)} (${pct}%)</span>
                 </div>
                 <div class="bar-track">
@@ -2164,8 +2995,16 @@
       }
       document.getElementById('repIncomesSummaryContainer').innerHTML = incomesHTML;
 
-      // 6. Fim dos Parcelamentos (Dívidas Parceladas)
+      // 6. Fim dos Parcelamentos e Dívidas em Andamento (PARTE 2)
+      const balanceDebts = debts
+        .map(d => ({
+          debt: d,
+          bal: calculateDebtBalanceInfo(d.due_date, d.amount, d.total_debt_amount, d.already_paid_amount),
+        }))
+        .filter(item => item.bal.isBalanceDebt);
+
       const installmentDebts = debts
+        .filter(d => !(Number(d.total_debt_amount || 0) > 0))
         .map(d => ({
           debt: d,
           info: calculateInstallmentInfo(d.due_date, d.paid, d.current_installment, d.total_installments),
@@ -2173,16 +3012,51 @@
         .filter(item => item.info.isInstallment);
 
       const installmentsContainer = document.getElementById('repInstallmentsSummaryContainer');
-      if (installmentDebts.length === 0) {
-        installmentsContainer.innerHTML = `<p style="font-size:12px;color:#71717A;text-align:center;padding:8px 0;">Nenhuma compra parcelada cadastrada no momento.</p>`;
+      if (balanceDebts.length === 0 && installmentDebts.length === 0) {
+        installmentsContainer.innerHTML = `<p style="font-size:12px;color:#71717A;text-align:center;padding:8px 0;">Nenhuma dívida parcelada ou com saldo total cadastrada neste mês.</p>`;
       } else {
-        const totalCommittedFuture = installmentDebts.reduce(
-          (acc, item) => acc + Number(item.debt.amount) * item.info.remaining,
-          0
-        );
-        const activeCount = installmentDebts.filter(x => x.info.remaining > 0).length;
+        const totalCommittedBalance = balanceDebts.reduce((acc, x) => acc + x.bal.remainingBalance, 0);
+        const totalCommittedInst = installmentDebts.reduce((acc, x) => acc + Number(x.debt.amount) * x.info.remaining, 0);
+        const totalCommittedFuture = totalCommittedBalance + totalCommittedInst;
+        const activeCount =
+          balanceDebts.filter(x => !x.bal.isFullyPaid).length +
+          installmentDebts.filter(x => x.info.remaining > 0).length;
 
-        const itemsHTML = installmentDebts
+        const balanceItemsHTML = balanceDebts
+          .map(({ debt, bal }) => {
+            const statusLine = bal.isFullyPaid
+              ? `<span style="color:#15803D;font-weight:600;">Dívida 100% quitada 🎉</span>`
+              : `Quita em <strong style="color:#1A1A1A;">${bal.endMonthYear}</strong> (${bal.remainingInstallments} ${bal.remainingInstallments === 1 ? 'parcela restante' : 'parcelas restantes'})`;
+
+            return `
+              <div style="background:#F8F9FA;border:1px solid #ECEEF2;border-radius:12px;padding:12px;margin-top:8px;">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">
+                  <div style="min-width:0;">
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                      <strong style="font-size:13px;color:#1A1A1A;">${escapeHTML(debt.title || debt.description)}</strong>
+                      <span style="font-size:10px;background:#FFFFFF;border:1px solid #E4E4E7;border-radius:999px;padding:1px 7px;color:#52525B;">
+                        #${escapeHTML(debt.tag)}
+                      </span>
+                    </div>
+                    <div style="font-size:11.5px;color:#52525B;margin-top:4px;">
+                      Pago: <strong style="color:#1A1A1A;">${formatBRL(bal.alreadyPaid, state.showValues)}</strong> de ${formatBRL(bal.totalDebt, state.showValues)}
+                    </div>
+                    <div style="font-size:11px;color:#71717A;margin-top:2px;">${statusLine}</div>
+                  </div>
+                  <div style="text-align:right;flex-shrink:0;">
+                    <div style="font-size:10px;color:#71717A;">Falta pagar</div>
+                    <strong style="font-size:13px;color:#1E1B4B;">${formatBRL(bal.remainingBalance, state.showValues)}</strong>
+                  </div>
+                </div>
+                <div class="bar-track" style="height:6px;">
+                  <div class="bar-fill-cherry" style="width:${bal.progressPct}%;"></div>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+
+        const instItemsHTML = installmentDebts
           .map(({ debt, info }) => {
             const committedVal = Number(debt.amount) * info.remaining;
             const statusLine = info.isLastInstallmentPaid
@@ -2194,7 +3068,7 @@
                 <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">
                   <div>
                     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                      <strong style="font-size:13px;color:#1A1A1A;">${debt.title || debt.description}</strong>
+                      <strong style="font-size:13px;color:#1A1A1A;">${escapeHTML(debt.title || debt.description)}</strong>
                       <span style="font-size:10px;background:#FFFFFF;border:1px solid #E4E4E7;border-radius:999px;padding:1px 7px;color:#52525B;">
                         Parcela ${info.current} de ${info.total}
                       </span>
@@ -2202,7 +3076,7 @@
                     <div style="font-size:11px;color:#71717A;margin-top:3px;">${statusLine}</div>
                   </div>
                   <div style="text-align:right;flex-shrink:0;">
-                    <div style="font-size:10px;color:#71717A;">Restante total</div>
+                    <div style="font-size:10px;color:#71717A;">Falta pagar</div>
                     <strong style="font-size:13px;color:#1E1B4B;">${formatBRL(committedVal, state.showValues)}</strong>
                   </div>
                 </div>
@@ -2217,12 +3091,13 @@
         installmentsContainer.innerHTML = `
           <div style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
             <div>
-              <div style="font-size:11px;font-weight:600;color:#1E1B4B;">Total ainda comprometido (próximos meses)</div>
-              <div style="font-size:11px;color:#52525B;">${activeCount} parcelamento(s) ativo(s)</div>
+              <div style="font-size:11px;font-weight:600;color:#1E1B4B;">Saldo devedor total restante</div>
+              <div style="font-size:11px;color:#52525B;">${activeCount} dívida(s) em andamento</div>
             </div>
             <strong style="font-size:14px;color:#1E1B4B;">${formatBRL(totalCommittedFuture, state.showValues)}</strong>
           </div>
-          ${itemsHTML}
+          ${balanceItemsHTML}
+          ${instItemsHTML}
         `;
       }
     }
@@ -2243,7 +3118,7 @@
           return `
             <div class="goal-card">
               <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#1A1A1A;">
-                <span>#${g.tag}</span>
+                <span>#${escapeHTML(g.tag)}</span>
                 <span style="color:${isOver ? '#DC2626' : '#1E1B4B'};">${formatBRL(spent, state.showValues)} / ${formatBRL(g.limit, state.showValues)} (${pct}%)</span>
               </div>
               <div class="bar-track">
@@ -2266,7 +3141,7 @@
 
       const filterRow = document.getElementById('historyTagFilterRow');
       filterRow.innerHTML = allTags
-        .map(tag => `<button type="button" class="filter-chip ${state.historyTagFilter === tag ? 'active' : ''}" data-hist-tag="${tag}">#${tag}</button>`)
+        .map(tag => `<button type="button" class="filter-chip ${state.historyTagFilter === tag ? 'active' : ''}" data-hist-tag="${escapeHTML(tag)}">#${escapeHTML(tag)}</button>`)
         .join('');
 
       filterRow.querySelectorAll('[data-hist-tag]').forEach(btn => {
@@ -2281,8 +3156,8 @@
         .map(inc => `
           <div class="history-item" style="background:#F0FDF4;border-color:#DCFCE7;">
             <div>
-              <div style="font-size:14px;font-weight:600;color:#1A1A1A;">${inc.title || inc.description}</div>
-              <div style="font-size:11px;color:#15803D;">Entrada • #${inc.tag}</div>
+              <div style="font-size:14px;font-weight:600;color:#1A1A1A;">${escapeHTML(inc.title || inc.description)}</div>
+              <div style="font-size:11px;color:#15803D;">Entrada • #${escapeHTML(inc.tag)}</div>
             </div>
             <strong style="font-size:13px;color:#15803D;">+ ${formatBRL(inc.amount, state.showValues)}</strong>
           </div>
@@ -2294,9 +3169,9 @@
         .map(tx => `
           <div class="history-item">
             <div>
-              <div style="font-size:14px;font-weight:600;color:#1A1A1A;">${tx.title || tx.description}</div>
+              <div style="font-size:14px;font-weight:600;color:#1A1A1A;">${escapeHTML(tx.title || tx.description)}</div>
               <div style="font-size:11px;color:#71717A;">
-                ${tx.type === 'debt' ? (tx.paid ? 'Dívida Paga' : 'Dívida Pendente') : 'Gasto Avulso'} • #${tx.tag}
+                ${tx.type === 'debt' ? (tx.paid ? 'Dívida Paga' : 'Dívida Pendente') : 'Gasto Avulso'} • #${escapeHTML(tx.tag)}
               </div>
             </div>
             <strong style="font-size:13px;color:${tx.type === 'debt' && !tx.paid ? '#D97706' : '#DC2626'};">
@@ -2307,10 +3182,14 @@
         .join('');
 
       const combinedHistoryHTML = incHTML + txHTML;
-      document.getElementById('historyListContainer').innerHTML = combinedHistoryHTML || `<div style="background:#FFFFFF;border:1px dashed #E4E4E7;border-radius:16px;padding:18px;text-align:center;font-size:12px;color:#71717A;">Nenhuma movimentação registrada ainda</div>`;
+      document.getElementById('historyListContainer').innerHTML =
+        combinedHistoryHTML ||
+        `<div style="background:#FFFFFF;border:1px dashed #E4E4E7;border-radius:16px;padding:18px;text-align:center;font-size:12px;color:#71717A;">Nenhuma movimentação registrada em ${formatMonthYearLabel(state.selectedMonthYear)}</div>`;
     }
 
     function renderAll() {
+      syncMonthSelectorLabels();
+
       const baseSalary = getBaseSalary();
       const extraTotal = getExtraIncomesTotal();
       const totalSalary = baseSalary + extraTotal;
@@ -2323,7 +3202,6 @@
         .reduce((acc, d) => acc + Number(d.amount), 0);
       const expensesTotal = expenses.reduce((acc, e) => acc + Number(e.amount), 0);
 
-      // Saldo Atual Disponível = Salário Total (Base + Entradas Extras) - Dívidas Pagas - Últimos Gastos
       const availableBalance = totalSalary - paidDebtsTotal - expensesTotal;
 
       // Header da Home
@@ -2331,9 +3209,9 @@
       document.getElementById('availableBalanceDisplay').textContent = formatBRL(availableBalance, state.showValues);
       document.getElementById('eyeIconContainer').innerHTML = getEyeIconSVG(state.showValues);
 
-      const dbBadge = document.getElementById('dbStatusBtn');
-      dbBadge.textContent = state.usingSupabase ? 'Supabase Conectado' : 'Modo Local Ativo';
-      dbBadge.style.color = state.usingSupabase ? '#4ADE80' : '#A0A0A0';
+      const dbBadge = document.getElementById('dbStatusBadge');
+      dbBadge.textContent = state.usingSupabase ? 'Supabase Conectado' : 'Sincronizando';
+      dbBadge.style.color = state.usingSupabase ? '#4ADE80' : '#FDE047';
 
       const breakdownEl = document.getElementById('salaryBreakdownText');
       if (extraTotal > 0) {
@@ -2343,9 +3221,9 @@
         breakdownEl.style.display = 'none';
       }
 
-      // Home: Minhas Dívidas & Últimos Gastos (Mensagens discretas de estado vazio)
-      const emptyDebtMsg = `<div style="background:#FFFFFF;border:1px dashed #E4E4E7;border-radius:16px;padding:18px;text-align:center;font-size:12px;color:#71717A;">Nenhuma dívida cadastrada neste mês</div>`;
-      const emptyExpMsg = `<div style="grid-column:span 2;background:#FFFFFF;border:1px dashed #E4E4E7;border-radius:16px;padding:18px;text-align:center;font-size:12px;color:#71717A;">Nenhum gasto registrado</div>`;
+      const monthTitle = formatMonthYearLabel(state.selectedMonthYear);
+      const emptyDebtMsg = `<div style="background:#FFFFFF;border:1px dashed #E4E4E7;border-radius:16px;padding:18px;text-align:center;font-size:12px;color:#71717A;">Nenhuma dívida cadastrada em ${monthTitle}</div>`;
+      const emptyExpMsg = `<div style="grid-column:span 2;background:#FFFFFF;border:1px dashed #E4E4E7;border-radius:16px;padding:18px;text-align:center;font-size:12px;color:#71717A;">Nenhum gasto registrado em ${monthTitle}</div>`;
 
       document.getElementById('homeDebtsContainer').innerHTML = debts.length ? debts.map(renderDebtCardHTML).join('') : emptyDebtMsg;
       document.getElementById('homeExpensesContainer').innerHTML = expenses.length ? expenses.map(renderExpenseCardHTML).join('') : emptyExpMsg;
@@ -2353,7 +3231,7 @@
       // Página Dívidas
       const debtTags = ['Todas', ...new Set(debts.map(d => d.tag))];
       document.getElementById('debtTagFilterRow').innerHTML = debtTags
-        .map(tag => `<button type="button" class="filter-chip ${state.debtTagFilter === tag ? 'active' : ''}" data-debt-tag="${tag}">#${tag}</button>`)
+        .map(tag => `<button type="button" class="filter-chip ${state.debtTagFilter === tag ? 'active' : ''}" data-debt-tag="${escapeHTML(tag)}">#${escapeHTML(tag)}</button>`)
         .join('');
 
       const filteredDebts = debts.filter(d => {
@@ -2368,7 +3246,7 @@
       const extras = state.incomes.filter(i => !i.is_base_salary);
       const expTags = ['Todas', ...new Set([...expenses.map(e => e.tag), ...extras.map(i => i.tag)])];
       document.getElementById('expenseTagFilterRow').innerHTML = expTags
-        .map(tag => `<button type="button" class="filter-chip ${state.expenseTagFilter === tag ? 'active' : ''}" data-exp-tag="${tag}">#${tag}</button>`)
+        .map(tag => `<button type="button" class="filter-chip ${state.expenseTagFilter === tag ? 'active' : ''}" data-exp-tag="${escapeHTML(tag)}">#${escapeHTML(tag)}</button>`)
         .join('');
 
       const filteredExtras = extras.filter(i => state.expenseTagFilter === 'Todas' || i.tag === state.expenseTagFilter);
@@ -2379,12 +3257,12 @@
           .map(inc => `
             <div class="debt-card">
               <div>
-                <div class="debt-name">${inc.title || inc.description}</div>
-                <span class="debt-tag-chip" style="background:#DCFCE7;color:#15803D;">#${inc.tag}</span>
+                <div class="debt-name">${escapeHTML(inc.title || inc.description)}</div>
+                <span class="debt-tag-chip" style="background:#DCFCE7;color:#15803D;">#${escapeHTML(inc.tag)}</span>
               </div>
               <div style="display:flex;align-items:center;gap:8px;">
                 <strong style="color:#15803D;font-size:14px;">+ ${formatBRL(inc.amount, state.showValues)}</strong>
-                <button type="button" data-del-inc-id="${inc.id}" title="Excluir entrada" style="background:none;border:none;color:#A1A1AA;cursor:pointer;padding:6px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;" onmouseover="this.style.color='#DC2626'" onmouseout="this.style.color='#A1A1AA'">
+                <button type="button" data-del-inc-id="${inc.id}" title="Excluir entrada" style="background:none;border:none;color:#A1A1AA;cursor:pointer;padding:6px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;">
                   ${getTrashIconSVG()}
                 </button>
               </div>
@@ -2403,27 +3281,23 @@
       renderGoalsPage();
       renderHistoryPage();
 
-      // Bind botões [Pagar]
+      // Bind botões dinâmicos
       document.querySelectorAll('[data-pay-id]').forEach(btn => {
         btn.addEventListener('click', () => handlePayDebt(btn.getAttribute('data-pay-id')));
       });
 
-      // Bind botões [Desfazer Pagamento]
       document.querySelectorAll('[data-unpay-id]').forEach(btn => {
         btn.addEventListener('click', () => handleUndoPayDebt(btn.getAttribute('data-unpay-id')));
       });
 
-      // Bind botões [Excluir Transação]
       document.querySelectorAll('[data-del-id]').forEach(btn => {
         btn.addEventListener('click', () => handleDeleteTransaction(btn.getAttribute('data-del-id')));
       });
 
-      // Bind botões [Excluir Entrada Extra]
       document.querySelectorAll('[data-del-inc-id]').forEach(btn => {
         btn.addEventListener('click', () => handleDeleteIncome(btn.getAttribute('data-del-inc-id')));
       });
 
-      // Bind filtros de tag
       document.querySelectorAll('[data-debt-tag]').forEach(btn => {
         btn.addEventListener('click', () => {
           state.debtTagFilter = btn.getAttribute('data-debt-tag');
@@ -2440,42 +3314,85 @@
     }
 
     // =========================================================================
-    // AÇÕES E PERSISTÊNCIA (SUPABASE + ESTADO LOCAL)
+    // AÇÕES E PERSISTÊNCIA NO SUPABASE (COM ATUALIZAÇÃO DE SALDO DE DÍVIDA)
     // =========================================================================
     async function handlePayDebt(debtId) {
+      const target = state.transactions.find(t => t.id === debtId);
+      if (!target) return;
+
+      const hasBalance = Number(target.total_debt_amount || 0) > 0;
+      const newAlreadyPaid = hasBalance
+        ? Math.min(
+            Number(target.total_debt_amount),
+            Number((Number(target.already_paid_amount || 0) + Number(target.amount)).toFixed(2))
+          )
+        : Number(target.already_paid_amount || 0);
+
       state.transactions = state.transactions.map(t =>
-        t.id === debtId ? { ...t, paid: true } : t
+        t.id === debtId
+          ? {
+              ...t,
+              paid: true,
+              ...(hasBalance ? { already_paid_amount: newAlreadyPaid } : {}),
+            }
+          : t
       );
-      saveLocalState();
       renderAll();
 
-      if (state.supabaseClient && state.usingSupabase) {
+      if (state.supabaseClient && state.session) {
+        const updatePayload = hasBalance
+          ? { paid: true, already_paid_amount: newAlreadyPaid }
+          : { paid: true };
         try {
-          await state.supabaseClient.from('transactions').update({ paid: true }).eq('id', debtId);
+          await state.supabaseClient
+            .from('transactions')
+            .update(updatePayload)
+            .eq('id', debtId);
         } catch (e) {}
       }
     }
 
     async function handleUndoPayDebt(debtId) {
+      const target = state.transactions.find(t => t.id === debtId);
+      if (!target) return;
+
+      const hasBalance = Number(target.total_debt_amount || 0) > 0;
+      const newAlreadyPaid = hasBalance
+        ? Math.max(
+            0,
+            Number((Number(target.already_paid_amount || 0) - Number(target.amount)).toFixed(2))
+          )
+        : Number(target.already_paid_amount || 0);
+
       state.transactions = state.transactions.map(t =>
-        t.id === debtId ? { ...t, paid: false } : t
+        t.id === debtId
+          ? {
+              ...t,
+              paid: false,
+              ...(hasBalance ? { already_paid_amount: newAlreadyPaid } : {}),
+            }
+          : t
       );
-      saveLocalState();
       renderAll();
 
-      if (state.supabaseClient && state.usingSupabase) {
+      if (state.supabaseClient && state.session) {
+        const updatePayload = hasBalance
+          ? { paid: false, already_paid_amount: newAlreadyPaid }
+          : { paid: false };
         try {
-          await state.supabaseClient.from('transactions').update({ paid: false }).eq('id', debtId);
+          await state.supabaseClient
+            .from('transactions')
+            .update(updatePayload)
+            .eq('id', debtId);
         } catch (e) {}
       }
     }
 
     async function handleDeleteTransaction(txId) {
       state.transactions = state.transactions.filter(t => t.id !== txId);
-      saveLocalState();
       renderAll();
 
-      if (state.supabaseClient && state.usingSupabase) {
+      if (state.supabaseClient && state.session) {
         try {
           await state.supabaseClient.from('transactions').delete().eq('id', txId);
         } catch (e) {}
@@ -2484,10 +3401,9 @@
 
     async function handleDeleteIncome(incId) {
       state.incomes = state.incomes.filter(i => i.id !== incId);
-      saveLocalState();
       renderAll();
 
-      if (state.supabaseClient && state.usingSupabase) {
+      if (state.supabaseClient && state.session) {
         try {
           await state.supabaseClient.from('incomes').delete().eq('id', incId);
         } catch (e) {}
@@ -2504,12 +3420,129 @@
       document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
     }
 
+    function openNewDebtModal() {
+      document.getElementById('inputDebtDueDate').value = getDefaultDueDateForMonth(state.selectedMonthYear);
+      document.getElementById('debtFormErrorBox').style.display = 'none';
+      setDebtFormMode(state.debtFormMode);
+      updateDebtDueDateHint();
+      updateDebtBalancePreview();
+      openModal('modalNewDebt');
+    }
+
     // =========================================================================
     // INICIALIZAÇÃO DE EVENTOS
     // =========================================================================
     document.addEventListener('DOMContentLoaded', () => {
-      loadLocalState();
-      document.getElementById('inputDebtDueDate').value = getOffsetDateString(3);
+      // Eventos da Tela de Autenticação (PARTE 1)
+      document.getElementById('btnAuthSwitchMode').addEventListener('click', () => {
+        state.authMode = state.authMode === 'login' ? 'register' : 'login';
+        updateAuthModeUI();
+      });
+
+      document.getElementById('formAuth').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        setAuthError('');
+        const rawIdentifier = document.getElementById('inputAuthEmail').value.trim();
+        const email = normalizeLoginIdentifier(rawIdentifier);
+        const password = document.getElementById('inputAuthPassword').value;
+        const submitBtn = document.getElementById('btnAuthSubmit');
+
+        if (!email) {
+          setAuthError('Informe um usuário (mín. 2 caracteres) ou um e-mail válido.');
+          return;
+        }
+        if (!password || password.length < 6) {
+          setAuthError('A senha deve ter pelo menos 6 caracteres.');
+          return;
+        }
+        if (!state.supabaseClient) {
+          setAuthError('Conexão com o servidor indisponível no momento.');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = state.authMode === 'login' ? 'Entrando...' : 'Registrando...';
+
+        try {
+          if (state.authMode === 'login') {
+            const { data, error } = await state.supabaseClient.auth.signInWithPassword({
+              email,
+              password,
+            });
+            if (error || !data.session) {
+              setAuthError(translateAuthError(error && error.message));
+            } else {
+              document.getElementById('inputAuthPassword').value = '';
+              await unlockAppWithSession(data.session);
+            }
+          } else {
+            const { data, error } = await state.supabaseClient.auth.signUp({
+              email,
+              password,
+            });
+            if (error) {
+              setAuthError(translateAuthError(error.message));
+            } else if (data && data.session) {
+              document.getElementById('inputAuthPassword').value = '';
+              await unlockAppWithSession(data.session);
+            } else {
+              const signInRes = await state.supabaseClient.auth.signInWithPassword({
+                email,
+                password,
+              });
+              if (signInRes.error || !signInRes.data.session) {
+                setAuthError(
+                  translateAuthError(
+                    (signInRes.error && signInRes.error.message) ||
+                      'Conta criada! Clique em "Voltar para Entrar" para acessar.'
+                  )
+                );
+              } else {
+                document.getElementById('inputAuthPassword').value = '';
+                await unlockAppWithSession(signInRes.data.session);
+              }
+            }
+          }
+        } catch (err) {
+          setAuthError('Erro de conexão ao autenticar. Verifique sua internet.');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = state.authMode === 'login' ? 'Entrar' : 'Registrar';
+        }
+      });
+
+      document.getElementById('btnLogoutHome').addEventListener('click', handleLogout);
+      document.getElementById('btnLogoutInternal').addEventListener('click', handleLogout);
+
+      // Eventos do Calendário Mensal (PARTE 3)
+      document.querySelectorAll('[data-month-prev]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          changeSelectedMonth(shiftMonthYear(state.selectedMonthYear, -1));
+        });
+      });
+      document.querySelectorAll('[data-month-next]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          changeSelectedMonth(shiftMonthYear(state.selectedMonthYear, 1));
+        });
+      });
+      document.querySelectorAll('[data-month-open]').forEach(btn => {
+        btn.addEventListener('click', openMonthCalendarModal);
+      });
+
+      document.getElementById('calYearPrev').addEventListener('click', () => {
+        state.calendarPickerYear -= 1;
+        renderMonthCalendarModal();
+      });
+      document.getElementById('calYearNext').addEventListener('click', () => {
+        state.calendarPickerYear += 1;
+        renderMonthCalendarModal();
+      });
+      document.getElementById('btnCalToday').addEventListener('click', () => {
+        const curr = getCurrentMonthYear();
+        state.calendarPickerYear = parseMonthYear(curr).year;
+        closeAllModals();
+        changeSelectedMonth(curr);
+      });
 
       // Toggle olho de visibilidade
       document.getElementById('eyeToggleBtn').addEventListener('click', () => {
@@ -2517,18 +3550,20 @@
         renderAll();
       });
 
-      // Botão "← Voltar" nas telas internas -> Redireciona para Início
+      // Botão "← Voltar" nas telas internas
       document.getElementById('backToHomeBtn').addEventListener('click', () => {
         navigateToPage('home');
       });
 
       // Fluxo de 2 etapas para alterar salário
       document.getElementById('salaryMainBtn').addEventListener('click', () => {
+        document.getElementById('confirmSalaryMonthText').textContent = formatMonthYearLabel(state.selectedMonthYear);
         document.getElementById('confirmCurrentSalaryText').textContent = formatBRL(getBaseSalary(), true);
         openModal('modalConfirmSalary');
       });
 
       document.getElementById('btnConfirmSalaryYes').addEventListener('click', () => {
+        document.getElementById('editSalaryMonthText').textContent = formatMonthYearLabel(state.selectedMonthYear);
         document.getElementById('inputNewSalary').value = String(getBaseSalary());
         openModal('modalEditSalary');
       });
@@ -2538,34 +3573,33 @@
         const val = parseFloat(document.getElementById('inputNewSalary').value);
         if (isNaN(val) || val < 0) return;
 
-        const currentMonthYear = getCurrentMonthYear();
+        const targetMonth = state.selectedMonthYear;
         let baseItem = state.incomes.find(i => i.is_base_salary);
         if (baseItem) {
           baseItem.amount = val;
         } else {
           baseItem = {
-            id: 'inc-base-salary',
+            id: 'inc-base-salary-' + targetMonth,
             title: 'Salário Base',
             amount: val,
             tag: 'Salário',
             is_base_salary: true,
-            month_year: currentMonthYear,
+            month_year: targetMonth,
             created_at: new Date().toISOString(),
           };
           state.incomes.unshift(baseItem);
         }
 
-        saveLocalState();
         closeAllModals();
         renderAll();
 
-        if (state.supabaseClient && state.usingSupabase) {
+        if (state.supabaseClient && state.session) {
           try {
             const { data: existingRows } = await state.supabaseClient
               .from('incomes')
               .select('id')
               .eq('is_base_salary', true)
-              .eq('month_year', currentMonthYear)
+              .eq('month_year', targetMonth)
               .limit(1);
 
             if (existingRows && existingRows.length > 0) {
@@ -2582,20 +3616,19 @@
                   amount: val,
                   tag: 'Salário',
                   is_base_salary: true,
-                  month_year: currentMonthYear,
+                  month_year: targetMonth,
                 })
                 .select('*')
                 .single();
               if (inserted) baseItem.id = inserted.id;
             }
-            saveLocalState();
           } catch (err) {}
         }
       });
 
       // Botões de Ações Rápidas
-      document.getElementById('qaPayBillBtn').addEventListener('click', () => openModal('modalNewDebt'));
-      document.getElementById('tabAddDebtBtn').addEventListener('click', () => openModal('modalNewDebt'));
+      document.getElementById('qaPayBillBtn').addEventListener('click', openNewDebtModal);
+      document.getElementById('tabAddDebtBtn').addEventListener('click', openNewDebtModal);
 
       function openExpenseOrIncomeModal(mode) {
         const isExp = mode === 'expense';
@@ -2603,20 +3636,38 @@
         document.getElementById('switchModeIncome').classList.toggle('active', !isExp);
         document.getElementById('formNewExpense').style.display = isExp ? 'block' : 'none';
         document.getElementById('formNewIncome').style.display = isExp ? 'none' : 'block';
+
+        const hintEl = document.getElementById('entryMonthHint');
+        if (state.selectedMonthYear !== getCurrentMonthYear()) {
+          hintEl.style.display = 'block';
+          hintEl.innerHTML = `Lançamento será salvo em <strong>${formatMonthYearLabel(state.selectedMonthYear)}</strong>`;
+        } else {
+          hintEl.style.display = 'none';
+        }
         openModal('modalExpenseOrIncome');
       }
 
       document.getElementById('qaNewExpenseBtn').addEventListener('click', () => openExpenseOrIncomeModal('expense'));
       document.getElementById('tabAddExpenseBtn').addEventListener('click', () => openExpenseOrIncomeModal('expense'));
       document.getElementById('tabAddIncomeBtn').addEventListener('click', () => openExpenseOrIncomeModal('income'));
-
       document.getElementById('switchModeExpense').addEventListener('click', () => openExpenseOrIncomeModal('expense'));
       document.getElementById('switchModeIncome').addEventListener('click', () => openExpenseOrIncomeModal('income'));
 
-      // Navegação para páginas dedicadas (Relatórios, Metas, Histórico)
+      // Navegação para páginas dedicadas
       document.getElementById('qaReportsBtn').addEventListener('click', () => navigateToPage('reports'));
       document.getElementById('qaGoalsBtn').addEventListener('click', () => navigateToPage('goals'));
       document.getElementById('qaHistoryBtn').addEventListener('click', () => navigateToPage('history'));
+
+      // Alternador de modo da Nova Dívida (PARTE 2)
+      document.getElementById('btnDebtModeBalance').addEventListener('click', () => setDebtFormMode('balance'));
+      document.getElementById('btnDebtModeSimple').addEventListener('click', () => setDebtFormMode('simple'));
+
+      ['inputDebtTotalAmount', 'inputDebtAlreadyPaid', 'inputDebtNextInstallment', 'inputDebtDueDate'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          updateDebtBalancePreview();
+          updateDebtDueDateHint();
+        });
+      });
 
       // Seleção de ícones nos modais
       document.querySelectorAll('#debtIconPicker .icon-pick-btn').forEach(btn => {
@@ -2644,15 +3695,6 @@
         });
       });
 
-      // Toggle do Accordion de Últimos Abastecimentos (Gasolina)
-      const fuelToggleBtn = document.getElementById('repFuelToggleBtn');
-      if (fuelToggleBtn) {
-        fuelToggleBtn.addEventListener('click', () => {
-          state.fuelAccordionOpen = !state.fuelAccordionOpen;
-          renderAll();
-        });
-      }
-
       // Sugestões rápidas de TAG
       document.querySelectorAll('.tag-sug-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -2662,62 +3704,130 @@
         });
       });
 
-      // Toggle de Dívida Parcelada no modal Nova Dívida
+      // Toggle de Parcela X de Y no modo simples
       const isInstCheckbox = document.getElementById('inputDebtIsInstallment');
       const instFieldsRow = document.getElementById('debtInstallmentsFieldsRow');
-      const singleInstHint = document.getElementById('debtSingleInstallmentHint');
-
       isInstCheckbox.addEventListener('change', () => {
-        const checked = isInstCheckbox.checked;
-        instFieldsRow.style.display = checked ? 'grid' : 'none';
-        singleInstHint.style.display = checked ? 'none' : 'block';
+        instFieldsRow.style.display = isInstCheckbox.checked ? 'grid' : 'none';
       });
 
-      // Salvar Nova Dívida
+      // Salvar Nova Dívida (PARTE 2 + PARTE 3)
       document.getElementById('formNewDebt').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const errBox = document.getElementById('debtFormErrorBox');
+        errBox.style.display = 'none';
+
         const desc = document.getElementById('inputDebtDesc').value.trim();
-        const amount = parseFloat(document.getElementById('inputDebtAmount').value);
-        const dueDate = document.getElementById('inputDebtDueDate').value;
+        const dueDate = document.getElementById('inputDebtDueDate').value || getDefaultDueDateForMonth(state.selectedMonthYear);
         const tag = document.getElementById('inputDebtTag').value.trim() || 'Geral';
-        if (!desc || isNaN(amount) || amount <= 0) return;
+        if (!desc) {
+          errBox.textContent = 'Informe o nome ou descrição da dívida.';
+          errBox.style.display = 'block';
+          return;
+        }
 
-        const isParcelada = isInstCheckbox.checked;
-        const rawTotal = parseInt(document.getElementById('inputDebtTotalInstallments').value, 10) || 1;
-        const rawCurrent = parseInt(document.getElementById('inputDebtCurrentInstallment').value, 10) || 1;
+        const targetMonthYear = /^\d{4}-\d{2}/.test(dueDate) ? dueDate.slice(0, 7) : state.selectedMonthYear;
 
-        const totalInstallments = isParcelada ? Math.max(2, rawTotal) : 1;
-        const currentInstallment = isParcelada ? Math.max(1, Math.min(totalInstallments, rawCurrent)) : 1;
+        let newDebt;
+        if (state.debtFormMode === 'balance') {
+          const totalNum = parseFloat(document.getElementById('inputDebtTotalAmount').value);
+          const paidRaw = document.getElementById('inputDebtAlreadyPaid').value;
+          const paidNum = paidRaw === '' ? 0 : parseFloat(paidRaw);
+          const nextInstNum = parseFloat(document.getElementById('inputDebtNextInstallment').value);
 
-        const currentMonthYear = getCurrentMonthYear();
-        const newDebt = {
-          id: 'debt-' + Date.now(),
-          title: desc,
-          amount,
-          type: 'debt',
-          tag,
-          icon: state.selectedDebtIcon,
-          due_date: dueDate,
-          paid: false,
-          total_installments: totalInstallments,
-          current_installment: currentInstallment,
-          month_year: currentMonthYear,
-          created_at: new Date().toISOString(),
-        };
+          if (isNaN(totalNum) || totalNum <= 0) {
+            errBox.textContent = 'Informe um Valor Total da Dívida maior que zero.';
+            errBox.style.display = 'block';
+            return;
+          }
+          if (isNaN(paidNum) || paidNum < 0) {
+            errBox.textContent = 'Informe um valor válido em "Quanto já foi pago".';
+            errBox.style.display = 'block';
+            return;
+          }
+          if (paidNum > totalNum) {
+            errBox.textContent = 'O valor já pago não pode ser maior que o valor total da dívida.';
+            errBox.style.display = 'block';
+            return;
+          }
+          if (isNaN(nextInstNum) || nextInstNum <= 0) {
+            errBox.textContent = 'Informe o Valor das Próximas Parcelas maior que zero.';
+            errBox.style.display = 'block';
+            return;
+          }
 
-        state.transactions.unshift(newDebt);
-        saveLocalState();
+          newDebt = {
+            id: 'debt-' + Date.now(),
+            title: desc,
+            amount: nextInstNum,
+            type: 'debt',
+            tag,
+            icon: state.selectedDebtIcon,
+            due_date: dueDate,
+            paid: totalNum - paidNum <= 0.004,
+            total_installments: 1,
+            current_installment: 1,
+            total_debt_amount: totalNum,
+            already_paid_amount: paidNum,
+            month_year: targetMonthYear,
+            created_at: new Date().toISOString(),
+          };
+        } else {
+          const amount = parseFloat(document.getElementById('inputDebtAmount').value);
+          if (isNaN(amount) || amount <= 0) {
+            errBox.textContent = 'Informe um valor válido para a dívida.';
+            errBox.style.display = 'block';
+            return;
+          }
+
+          const isParcelada = isInstCheckbox.checked;
+          const rawTotal = parseInt(document.getElementById('inputDebtTotalInstallments').value, 10) || 1;
+          const rawCurrent = parseInt(document.getElementById('inputDebtCurrentInstallment').value, 10) || 1;
+          const totalInstallments = isParcelada ? Math.max(2, rawTotal) : 1;
+          const currentInstallment = isParcelada ? Math.max(1, Math.min(totalInstallments, rawCurrent)) : 1;
+
+          newDebt = {
+            id: 'debt-' + Date.now(),
+            title: desc,
+            amount,
+            type: 'debt',
+            tag,
+            icon: state.selectedDebtIcon,
+            due_date: dueDate,
+            paid: false,
+            total_installments: totalInstallments,
+            current_installment: currentInstallment,
+            total_debt_amount: null,
+            already_paid_amount: 0,
+            month_year: targetMonthYear,
+            created_at: new Date().toISOString(),
+          };
+        }
+
+        const isSameMonth = targetMonthYear === state.selectedMonthYear;
+        if (isSameMonth) {
+          state.transactions.unshift(newDebt);
+        }
+
+        // Limpar campos
         document.getElementById('inputDebtDesc').value = '';
+        document.getElementById('inputDebtTotalAmount').value = '';
+        document.getElementById('inputDebtAlreadyPaid').value = '0';
+        document.getElementById('inputDebtNextInstallment').value = '';
         document.getElementById('inputDebtAmount').value = '';
         isInstCheckbox.checked = false;
         instFieldsRow.style.display = 'none';
-        singleInstHint.style.display = 'block';
         document.getElementById('inputDebtCurrentInstallment').value = '1';
         document.getElementById('inputDebtTotalInstallments').value = '10';
+        document.getElementById('debtBalancePreviewBox').style.display = 'none';
         closeAllModals();
         renderAll();
 
-        if (state.supabaseClient && state.usingSupabase) {
+        if (!isSameMonth) {
+          showToast(`Dívida salva em ${formatMonthYearLabel(targetMonthYear)}`);
+        }
+
+        if (state.supabaseClient && state.session) {
           try {
             const { id, created_at, ...payload } = newDebt;
             const { data } = await state.supabaseClient
@@ -2725,16 +3835,15 @@
               .insert(payload)
               .select('*')
               .single();
-            if (data && data.id) {
+            if (data && data.id && isSameMonth) {
               newDebt.id = data.id;
-              saveLocalState();
               renderAll();
             }
           } catch (err) {}
         }
       });
 
-      // Salvar Novo Gasto
+      // Salvar Novo Gasto (PARTE 3)
       document.getElementById('formNewExpense').addEventListener('submit', async (e) => {
         e.preventDefault();
         const desc = document.getElementById('inputExpenseDesc').value.trim();
@@ -2742,7 +3851,7 @@
         const tag = document.getElementById('inputExpenseTag').value.trim() || 'Geral';
         if (!desc || isNaN(amount) || amount <= 0) return;
 
-        const currentMonthYear = getCurrentMonthYear();
+        const targetMonth = state.selectedMonthYear;
         const newExp = {
           id: 'exp-' + Date.now(),
           title: desc,
@@ -2754,18 +3863,19 @@
           paid: true,
           total_installments: 1,
           current_installment: 1,
-          month_year: currentMonthYear,
+          total_debt_amount: null,
+          already_paid_amount: 0,
+          month_year: targetMonth,
           created_at: new Date().toISOString(),
         };
 
         state.transactions.unshift(newExp);
-        saveLocalState();
         document.getElementById('inputExpenseDesc').value = '';
         document.getElementById('inputExpenseAmount').value = '';
         closeAllModals();
         renderAll();
 
-        if (state.supabaseClient && state.usingSupabase) {
+        if (state.supabaseClient && state.session) {
           try {
             const { id, created_at, ...payload } = newExp;
             const { data } = await state.supabaseClient
@@ -2775,14 +3885,13 @@
               .single();
             if (data && data.id) {
               newExp.id = data.id;
-              saveLocalState();
               renderAll();
             }
           } catch (err) {}
         }
       });
 
-      // Salvar Nova Entrada Extra
+      // Salvar Nova Entrada Extra (PARTE 3)
       document.getElementById('formNewIncome').addEventListener('submit', async (e) => {
         e.preventDefault();
         const desc = document.getElementById('inputIncomeDesc').value.trim();
@@ -2790,25 +3899,24 @@
         const tag = document.getElementById('inputIncomeTag').value.trim() || 'Extra';
         if (!desc || isNaN(amount) || amount <= 0) return;
 
-        const currentMonthYear = getCurrentMonthYear();
+        const targetMonth = state.selectedMonthYear;
         const newInc = {
           id: 'inc-' + Date.now(),
           title: desc,
           amount,
           tag,
           is_base_salary: false,
-          month_year: currentMonthYear,
+          month_year: targetMonth,
           created_at: new Date().toISOString(),
         };
 
         state.incomes.push(newInc);
-        saveLocalState();
         document.getElementById('inputIncomeDesc').value = '';
         document.getElementById('inputIncomeAmount').value = '';
         closeAllModals();
         renderAll();
 
-        if (state.supabaseClient && state.usingSupabase) {
+        if (state.supabaseClient && state.session) {
           try {
             const { id, created_at, ...payload } = newInc;
             const { data } = await state.supabaseClient
@@ -2818,7 +3926,6 @@
               .single();
             if (data && data.id) {
               newInc.id = data.id;
-              saveLocalState();
               renderAll();
             }
           } catch (err) {}
@@ -2838,27 +3945,10 @@
         } else {
           state.goals.push({ tag, limit });
         }
-        saveLocalState();
+        saveGoalsLocal();
         document.getElementById('inputGoalTag').value = '';
         document.getElementById('inputGoalLimit').value = '';
         renderGoalsPage();
-      });
-
-      // Configurar Supabase via modal
-      document.getElementById('dbStatusBtn').addEventListener('click', () => {
-        document.getElementById('inputSbUrl').value = localStorage.getItem(LS_SB_URL) || DEFAULT_SUPABASE_URL;
-        document.getElementById('inputSbKey').value = localStorage.getItem(LS_SB_KEY) || DEFAULT_SUPABASE_PUBLISHABLE_KEY;
-        openModal('modalSupabaseConfig');
-      });
-
-      document.getElementById('formSupabaseConfig').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const url = document.getElementById('inputSbUrl').value.trim();
-        const key = document.getElementById('inputSbKey').value.trim();
-        localStorage.setItem(LS_SB_URL, url);
-        localStorage.setItem(LS_SB_KEY, key);
-        closeAllModals();
-        await initSupabase();
       });
 
       // Navegação Bottom Tab Bar
@@ -2888,7 +3978,8 @@
         });
       });
 
-      initSupabase();
+      // Inicia verificação obrigatória de sessão Supabase Auth antes de carregar qualquer dado
+      initSupabaseAndAuth();
     });
   </script>
 </body>
