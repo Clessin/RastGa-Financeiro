@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import {
   DebtIconType,
   ExpenseIconType,
@@ -10,17 +11,21 @@ import {
   TransactionRecord,
 } from '@/types/finance';
 import {
+  PT_MONTHS_SHORT,
+  calculateDebtBalanceInfo,
   calculateDueStatus,
   calculateInstallmentInfo,
   formatBRL,
-  formatTransactionDateBR,
+  formatMonthYearLabel,
   getCurrentMonthYear,
+  getDefaultDueDateForMonth,
   getInitialGoals,
   getInitialIncomes,
   getInitialTransactions,
-  getOffsetDateString,
   getTransactionSortTimestamp,
   isFuelTransaction,
+  parseMonthYear,
+  shiftMonthYear,
 } from '@/data/initialData';
 import {
   addExtraIncomeDB,
@@ -28,8 +33,13 @@ import {
   deleteIncomeDB,
   deleteTransactionDB,
   fetchAllFinanceData,
+  getActiveSession,
   markDebtPaidDB,
   markDebtUnpaidDB,
+  signInWithEmailPassword,
+  signOutUser,
+  signUpWithEmailPassword,
+  supabase,
   updateBaseSalaryDB,
 } from '@/lib/supabase';
 
@@ -39,7 +49,9 @@ type ActiveModal =
   | 'confirm_salary'
   | 'edit_salary'
   | 'new_debt'
-  | 'new_expense_or_income';
+  | 'new_expense_or_income'
+  | 'month_calendar';
+type DebtFormMode = 'balance' | 'simple';
 
 const PAGE_TITLES: Record<Exclude<ActivePage, 'home'>, string> = {
   debts: 'Minhas Dívidas',
@@ -50,6 +62,22 @@ const PAGE_TITLES: Record<Exclude<ActivePage, 'home'>, string> = {
 };
 
 export default function FinanceHomePage() {
+  // Parte 1: Autenticação e Sessão (Supabase Auth)
+  const [authChecking, setAuthChecking] = useState<boolean>(true);
+  const [session, setSession] = useState<Session | null>(null);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [authEmail, setAuthEmail] = useState<string>('');
+  const [authPassword, setAuthPassword] = useState<string>('');
+  const [authError, setAuthError] = useState<string>('');
+  const [authSubmitting, setAuthSubmitting] = useState<boolean>(false);
+
+  // Parte 3: Calendário Mensal (month_year)
+  const [selectedMonthYear, setSelectedMonthYear] = useState<string>(() => getCurrentMonthYear());
+  const [calendarYear, setCalendarYear] = useState<number>(() => parseMonthYear(getCurrentMonthYear()).year);
+  const [loadingMonth, setLoadingMonth] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string>('');
+
+  // Estado financeiro do mês selecionado
   const [incomes, setIncomes] = useState<IncomeRecord[]>(() => getInitialIncomes());
   const [transactions, setTransactions] = useState<TransactionRecord[]>(() =>
     getInitialTransactions()
@@ -63,15 +91,22 @@ export default function FinanceHomePage() {
   // Alterar Salário (2 etapas)
   const [salaryInput, setSalaryInput] = useState<string>('0');
 
-  // Nova Dívida
+  // Parte 2: Nova Dívida (Por Valor Total / Saldo Pago OU Conta Fixa / Parcelas)
+  const [debtFormMode, setDebtFormMode] = useState<DebtFormMode>('balance');
   const [debtDesc, setDebtDesc] = useState<string>('');
+  const [debtTotalAmount, setDebtTotalAmount] = useState<string>('');
+  const [debtAlreadyPaid, setDebtAlreadyPaid] = useState<string>('0');
+  const [debtNextInstallment, setDebtNextInstallment] = useState<string>('');
   const [debtAmount, setDebtAmount] = useState<string>('');
-  const [debtDueDate, setDebtDueDate] = useState<string>(() => getOffsetDateString(3));
-  const [debtIcon, setDebtIcon] = useState<DebtIconType>('wifi');
-  const [debtTag, setDebtTag] = useState<string>('Casa');
+  const [debtDueDate, setDebtDueDate] = useState<string>(() =>
+    getDefaultDueDateForMonth(getCurrentMonthYear())
+  );
+  const [debtIcon, setDebtIcon] = useState<DebtIconType>('card');
+  const [debtTag, setDebtTag] = useState<string>('Cartão');
   const [isInstallmentDebt, setIsInstallmentDebt] = useState<boolean>(false);
   const [debtCurrentInstallment, setDebtCurrentInstallment] = useState<string>('1');
   const [debtTotalInstallments, setDebtTotalInstallments] = useState<string>('10');
+  const [debtFormError, setDebtFormError] = useState<string>('');
 
   // Novo Gasto / Nova Entrada Extra
   const [entryMode, setEntryMode] = useState<'expense' | 'income'>('expense');
@@ -93,25 +128,159 @@ export default function FinanceHomePage() {
   const [debtTagFilter, setDebtTagFilter] = useState<string>('Todas');
   const [expenseTagFilter, setExpenseTagFilter] = useState<string>('Todas');
   const [historyTagFilter, setHistoryTagFilter] = useState<string>('Todas');
-  const [fuelAccordionOpen, setFuelAccordionOpen] = useState<boolean>(false);
 
+  const triggerToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage((prev) => (prev === msg ? '' : prev));
+    }, 3200);
+  };
+
+  // 1. Verificar sessão ativa do Supabase Auth antes de carregar qualquer dado financeiro
   useEffect(() => {
     let mounted = true;
-    fetchAllFinanceData().then((res) => {
+
+    getActiveSession().then((activeSession) => {
+      if (!mounted) return;
+      setSession(activeSession);
+      setAuthChecking(false);
+    });
+
+    const authListener = supabase?.auth.onAuthStateChange((_event, nextSession) => {
+      if (!mounted) return;
+      setSession(nextSession);
+      if (!nextSession) {
+        setIncomes([]);
+        setTransactions([]);
+        setGoals([]);
+        setUsingSupabase(false);
+      }
+    });
+
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
+    return () => {
+      mounted = false;
+      authListener?.data.subscription.unsubscribe();
+    };
+  }, []);
+
+  // Carregar metas salvas isoladamente por conta (user_id)
+  useEffect(() => {
+    if (!session || typeof window === 'undefined') {
+      setGoals([]);
+      return;
+    }
+    try {
+      const saved = JSON.parse(
+        window.localStorage.getItem(`financas_pwa_goals_uid_${session.user.id}`) || '[]'
+      );
+      setGoals(Array.isArray(saved) ? saved : []);
+    } catch {
+      setGoals([]);
+    }
+  }, [session]);
+
+  // 2. Carregar dados do Supabase filtrados por selectedMonthYear apenas quando autenticado
+  useEffect(() => {
+    if (!session) return;
+    let mounted = true;
+    setLoadingMonth(true);
+
+    fetchAllFinanceData(selectedMonthYear).then((res) => {
       if (!mounted) return;
       setIncomes(res.incomes);
       setTransactions(res.transactions);
       setUsingSupabase(res.usingSupabase);
+      setLoadingMonth(false);
     });
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
-    }
+
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [session, selectedMonthYear]);
 
-  // Cálculos principais (sem salário cadastrado = R$ 0,00)
+  // Preview em tempo real no modal "Nova Dívida" (Modo Saldo Total e Valor Já Pago)
+  const debtBalancePreview = useMemo(() => {
+    const totalNum = parseFloat(debtTotalAmount.replace(',', '.'));
+    const paidNum = parseFloat((debtAlreadyPaid || '0').replace(',', '.'));
+    const instNum = parseFloat(debtNextInstallment.replace(',', '.'));
+
+    if (isNaN(totalNum) || totalNum <= 0) return null;
+    const safePaid = isNaN(paidNum) || paidNum < 0 ? 0 : paidNum;
+    const safeInst = isNaN(instNum) || instNum <= 0 ? 0 : instNum;
+
+    return {
+      overpaid: safePaid > totalNum,
+      info: calculateDebtBalanceInfo(debtDueDate, safeInst, totalNum, safePaid),
+    };
+  }, [debtTotalAmount, debtAlreadyPaid, debtNextInstallment, debtDueDate]);
+
+  // Handlers de Autenticação
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setAuthSubmitting(true);
+
+    const result =
+      authMode === 'login'
+        ? await signInWithEmailPassword(authEmail, authPassword)
+        : await signUpWithEmailPassword(authEmail, authPassword);
+
+    setAuthSubmitting(false);
+
+    if (result.error || !result.session) {
+      setAuthError(result.error || 'Não foi possível concluir o acesso.');
+      return;
+    }
+
+    setSession(result.session);
+    setAuthPassword('');
+  };
+
+  const handleSignOut = async () => {
+    await signOutUser();
+    setSession(null);
+    setIncomes([]);
+    setTransactions([]);
+    setUsingSupabase(false);
+    setActivePage('home');
+    setActiveModal(null);
+    setAuthError('');
+  };
+
+  // Handlers do Calendário Mensal
+  const handleStepMonth = (delta: number) => {
+    setSelectedMonthYear((prev) => shiftMonthYear(prev, delta));
+  };
+
+  const handleOpenMonthCalendar = () => {
+    setCalendarYear(parseMonthYear(selectedMonthYear).year);
+    setActiveModal('month_calendar');
+  };
+
+  const handlePickMonthFromCalendar = (monthIndex: number) => {
+    const m = String(monthIndex + 1).padStart(2, '0');
+    setSelectedMonthYear(`${calendarYear}-${m}`);
+    setActiveModal(null);
+  };
+
+  const handleJumpToCurrentMonth = () => {
+    const curr = getCurrentMonthYear();
+    setSelectedMonthYear(curr);
+    setCalendarYear(parseMonthYear(curr).year);
+    setActiveModal(null);
+  };
+
+  const handleOpenNewDebtModal = () => {
+    setDebtFormError('');
+    setDebtDueDate(getDefaultDueDateForMonth(selectedMonthYear));
+    setActiveModal('new_debt');
+  };
+
+  // Cálculos principais do mês selecionado (sem salário cadastrado = R$ 0,00)
   const baseSalary = useMemo(() => {
     const base = incomes.find((i) => i.is_base_salary);
     return base ? Number(base.amount) : 0;
@@ -228,11 +397,10 @@ export default function FinanceHomePage() {
     }));
   }, [extraIncomesList, totalSalary]);
 
-  // Filtro automático de gastos com Gasolina / Combustível no month_year vigente
+  // Filtro automático de gastos com Gasolina / Combustível no mês selecionado
   const fuelTransactions = useMemo(() => {
-    const currentMonthYear = getCurrentMonthYear();
     return transactions
-      .filter((tx) => isFuelTransaction(tx, currentMonthYear))
+      .filter((tx) => isFuelTransaction(tx, selectedMonthYear))
       .slice()
       .sort((a, b) => {
         const diff =
@@ -243,7 +411,7 @@ export default function FinanceHomePage() {
           new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
         );
       });
-  }, [transactions]);
+  }, [transactions, selectedMonthYear]);
 
   const totalFuelSpent = useMemo(
     () => fuelTransactions.reduce((acc, item) => acc + Number(item.amount), 0),
@@ -264,7 +432,7 @@ export default function FinanceHomePage() {
     e.preventDefault();
     const parsed = parseFloat(salaryInput.replace(',', '.'));
     if (isNaN(parsed) || parsed < 0) return;
-    const updated = await updateBaseSalaryDB(parsed, incomes);
+    const updated = await updateBaseSalaryDB(parsed, incomes, selectedMonthYear);
     setIncomes(updated);
     setActiveModal(null);
   };
@@ -291,8 +459,79 @@ export default function FinanceHomePage() {
 
   const handleCreateDebt = async (e: React.FormEvent) => {
     e.preventDefault();
+    setDebtFormError('');
+
+    const cleanDesc = debtDesc.trim();
+    if (!cleanDesc) {
+      setDebtFormError('Informe o nome ou descrição da dívida.');
+      return;
+    }
+
+    const finalDueDate = debtDueDate || getDefaultDueDateForMonth(selectedMonthYear);
+    const targetMonthYear = /^\d{4}-\d{2}/.test(finalDueDate)
+      ? finalDueDate.slice(0, 7)
+      : selectedMonthYear;
+
+    if (debtFormMode === 'balance') {
+      const totalNum = parseFloat(debtTotalAmount.replace(',', '.'));
+      const paidNum = parseFloat((debtAlreadyPaid || '0').replace(',', '.'));
+      const nextInstNum = parseFloat(debtNextInstallment.replace(',', '.'));
+
+      if (isNaN(totalNum) || totalNum <= 0) {
+        setDebtFormError('Informe um Valor Total da Dívida maior que zero.');
+        return;
+      }
+      if (isNaN(paidNum) || paidNum < 0) {
+        setDebtFormError('Informe um valor válido em "Quanto já foi pago".');
+        return;
+      }
+      if (paidNum > totalNum) {
+        setDebtFormError('O valor já pago não pode ser maior que o valor total da dívida.');
+        return;
+      }
+      if (isNaN(nextInstNum) || nextInstNum <= 0) {
+        setDebtFormError('Informe o Valor das Próximas Parcelas maior que zero.');
+        return;
+      }
+
+      const isAlreadySettled = totalNum - paidNum <= 0.004;
+      const updated = await addTransactionDB(
+        {
+          title: cleanDesc,
+          amount: nextInstNum,
+          type: 'debt',
+          tag: debtTag.trim() || 'Geral',
+          icon: debtIcon,
+          due_date: finalDueDate,
+          paid: isAlreadySettled,
+          total_installments: 1,
+          current_installment: 1,
+          total_debt_amount: totalNum,
+          already_paid_amount: paidNum,
+        },
+        transactions,
+        targetMonthYear,
+        selectedMonthYear
+      );
+      setTransactions(updated);
+      setDebtDesc('');
+      setDebtTotalAmount('');
+      setDebtAlreadyPaid('0');
+      setDebtNextInstallment('');
+      setActiveModal(null);
+
+      if (targetMonthYear !== selectedMonthYear) {
+        triggerToast(`Dívida salva em ${formatMonthYearLabel(targetMonthYear)}`);
+      }
+      return;
+    }
+
+    // Modo simples / conta fixa ou Parcela X de Y
     const amountNum = parseFloat(debtAmount.replace(',', '.'));
-    if (!debtDesc.trim() || isNaN(amountNum) || amountNum <= 0) return;
+    if (isNaN(amountNum) || amountNum <= 0) {
+      setDebtFormError('Informe um valor válido para a dívida.');
+      return;
+    }
 
     const totalInst = isInstallmentDebt
       ? Math.max(2, parseInt(debtTotalInstallments, 10) || 2)
@@ -303,17 +542,21 @@ export default function FinanceHomePage() {
 
     const updated = await addTransactionDB(
       {
-        title: debtDesc.trim(),
+        title: cleanDesc,
         amount: amountNum,
         type: 'debt',
         tag: debtTag.trim() || 'Geral',
         icon: debtIcon,
-        due_date: debtDueDate || getOffsetDateString(3),
+        due_date: finalDueDate,
         paid: false,
         total_installments: totalInst,
         current_installment: currInst,
+        total_debt_amount: null,
+        already_paid_amount: 0,
       },
-      transactions
+      transactions,
+      targetMonthYear,
+      selectedMonthYear
     );
     setTransactions(updated);
     setDebtDesc('');
@@ -322,6 +565,10 @@ export default function FinanceHomePage() {
     setDebtCurrentInstallment('1');
     setDebtTotalInstallments('10');
     setActiveModal(null);
+
+    if (targetMonthYear !== selectedMonthYear) {
+      triggerToast(`Dívida salva em ${formatMonthYearLabel(targetMonthYear)}`);
+    }
   };
 
   const handleCreateExpense = async (e: React.FormEvent) => {
@@ -340,8 +587,12 @@ export default function FinanceHomePage() {
         paid: true,
         total_installments: 1,
         current_installment: 1,
+        total_debt_amount: null,
+        already_paid_amount: 0,
       },
-      transactions
+      transactions,
+      selectedMonthYear,
+      selectedMonthYear
     );
     setTransactions(updated);
     setExpenseDesc('');
@@ -360,7 +611,8 @@ export default function FinanceHomePage() {
         amount: amountNum,
         tag: incomeTag.trim() || 'Extra',
       },
-      incomes
+      incomes,
+      selectedMonthYear
     );
     setIncomes(updated);
     setIncomeDesc('');
@@ -376,12 +628,20 @@ export default function FinanceHomePage() {
 
     setGoals((prev) => {
       const exists = prev.some((g) => g.tag.toLowerCase() === tagClean.toLowerCase());
-      if (exists) {
-        return prev.map((g) =>
-          g.tag.toLowerCase() === tagClean.toLowerCase() ? { ...g, limit: limitNum } : g
-        );
+      const nextGoals = exists
+        ? prev.map((g) =>
+            g.tag.toLowerCase() === tagClean.toLowerCase() ? { ...g, limit: limitNum } : g
+          )
+        : [...prev, { tag: tagClean, limit: limitNum }];
+      if (session && typeof window !== 'undefined') {
+        try {
+          window.localStorage.setItem(
+            `financas_pwa_goals_uid_${session.user.id}`,
+            JSON.stringify(nextGoals)
+          );
+        } catch {}
       }
-      return [...prev, { tag: tagClean, limit: limitNum }];
+      return nextGoals;
     });
     setGoalTagInput('');
     setGoalLimitInput('');
@@ -407,13 +667,136 @@ export default function FinanceHomePage() {
     return Array.from(set);
   }, [incomes, transactions]);
 
+  const currentRealMonthYear = getCurrentMonthYear();
+  const isViewingCurrentMonth = selectedMonthYear === currentRealMonthYear;
+
+  // =========================================================================
+  // PARTE 1: BLOQUEIO INICIAL E TELA DE LOGIN / REGISTRO (SUPABASE AUTH)
+  // =========================================================================
+  if (authChecking) {
+    return (
+      <div
+        style={{ background: 'linear-gradient(145deg, #1E1B4B 0%, #2A1B4E 100%)' }}
+        className="min-h-screen w-full flex items-center justify-center p-6"
+      >
+        <div className="text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-white/15 border border-white/20 mx-auto flex items-center justify-center text-white">
+            <LockShieldIcon />
+          </div>
+          <p className="text-sm font-medium text-white/85">Verificando sua sessão...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div
+        style={{ background: 'linear-gradient(145deg, #1E1B4B 0%, #2A1B4E 100%)' }}
+        className="min-h-screen w-full flex flex-col items-center justify-center p-5"
+      >
+        <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl space-y-5">
+          <div className="text-center space-y-2">
+            <div
+              style={{ backgroundColor: '#EEF2FF', color: '#1E1B4B' }}
+              className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center"
+            >
+              <LockShieldIcon />
+            </div>
+            <h1 className="text-xl font-bold text-[#1A1A1A] tracking-tight">
+              {authMode === 'login' ? 'Acesse suas Finanças' : 'Criar Nova Conta'}
+            </h1>
+            <p className="text-xs text-neutral-500 leading-relaxed">
+              {authMode === 'login'
+                ? 'Entre com seu usuário (ou e-mail) e senha para visualizar e gerenciar seus dados com segurança.'
+                : 'Escolha um nome de usuário (ou e-mail) e uma senha pessoal (mínimo 6 caracteres). Cada conta possui dados 100% independentes.'}
+            </p>
+          </div>
+
+          <form onSubmit={handleAuthSubmit} className="space-y-3.5">
+            <div>
+              <label className="block text-xs font-medium text-neutral-600 mb-1">
+                Usuário ou E-mail
+              </label>
+              <input
+                type="text"
+                required
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                value={authEmail}
+                onChange={(e) => setAuthEmail(e.target.value)}
+                placeholder="usuário"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 text-sm text-[#1A1A1A] focus:outline-none focus:border-[#1E1B4B]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-neutral-600 mb-1">
+                Senha
+              </label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
+                value={authPassword}
+                onChange={(e) => setAuthPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 text-sm text-[#1A1A1A] focus:outline-none focus:border-[#1E1B4B]"
+              />
+            </div>
+
+            {authError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-medium text-red-700">
+                {authError}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={authSubmitting}
+              style={{ backgroundColor: '#1E1B4B', color: '#FFFFFF' }}
+              className="w-full py-3 rounded-full text-sm font-semibold hover:opacity-95 active:scale-[0.99] transition-all cursor-pointer disabled:opacity-60"
+            >
+              {authSubmitting
+                ? authMode === 'login'
+                  ? 'Entrando...'
+                  : 'Registrando...'
+                : authMode === 'login'
+                ? 'Entrar'
+                : 'Registrar'}
+            </button>
+          </form>
+
+          <div className="pt-3 border-t border-neutral-100 text-center space-y-2">
+            <p className="text-xs text-neutral-500">
+              {authMode === 'login' ? 'Ainda não tem uma conta?' : 'Já possui uma conta?'}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMode((prev) => (prev === 'login' ? 'register' : 'login'));
+                setAuthError('');
+              }}
+              className="w-full py-2.5 rounded-full bg-[#EEF2FF] text-[#1E1B4B] text-xs font-semibold hover:bg-indigo-100 transition-colors cursor-pointer"
+            >
+              {authMode === 'login' ? 'Registrar nova conta' : 'Voltar para Entrar'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] pb-24 flex flex-col items-center">
       <div className="w-full max-w-md min-h-screen bg-[#F8F9FA] flex flex-col shadow-sm">
         {/* ================================================================== */}
-        {/* REGRA DE CABEÇALHO:                                                */}
-        {/* - Em "home": Exibe Cabeçalho Principal do Salário (Azul Cereja)    */}
-        {/* - Nas demais páginas: Oculta o Salário e exibe "← Voltar" + Título */}
+        {/* CABEÇALHO                                                          */}
+        {/* - Em "home": Seletor Mensal + Salário Total + Sair                 */}
+        {/* - Nas demais páginas: "← Voltar" + Título + Sair                   */}
         {/* ================================================================== */}
         {activePage === 'home' ? (
           <header
@@ -421,18 +804,42 @@ export default function FinanceHomePage() {
               background: 'linear-gradient(145deg, #1E1B4B 0%, #2A1B4E 100%)',
               color: '#FFFFFF',
             }}
-            className="w-full px-5 pt-7 pb-6 text-left select-none"
+            className="w-full px-5 pt-5 pb-6 text-left select-none"
           >
-            <div className="flex items-center justify-between mb-1">
+            {/* PARTE 3: SELETOR COMPACTO DE MÊS/ANO ACIMA DE "SALÁRIO TOTAL" */}
+            <div className="mb-4">
+              <MonthSelectorBar
+                monthYear={selectedMonthYear}
+                variant="dark"
+                loading={loadingMonth}
+                onPrev={() => handleStepMonth(-1)}
+                onNext={() => handleStepMonth(1)}
+                onOpenCalendar={handleOpenMonthCalendar}
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-2 mb-1">
               <span
                 style={{ fontSize: '14px', fontWeight: 400, color: '#A0A0A0' }}
                 className="leading-tight"
               >
                 Salário Total
               </span>
-              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/10 text-[#A0A0A0]">
-                {usingSupabase ? 'Supabase Conectado' : 'Modo Local Ativo'}
-              </span>
+
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/10 text-emerald-300">
+                  {usingSupabase ? 'Supabase Conectado' : 'Sincronizando'}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  title="Encerrar sessão"
+                  className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/10 hover:bg-white/20 text-white/85 font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <LogoutIcon />
+                  <span>Sair</span>
+                </button>
+              </div>
             </div>
 
             <button
@@ -476,20 +883,38 @@ export default function FinanceHomePage() {
               background: 'linear-gradient(145deg, #1E1B4B 0%, #2A1B4E 100%)',
               color: '#FFFFFF',
             }}
-            className="w-full px-5 py-4 flex items-center gap-3 sticky top-0 z-30 shadow-sm"
+            className="w-full px-5 py-4 flex items-center justify-between gap-3 sticky top-0 z-30 shadow-sm"
           >
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                type="button"
+                onClick={() => setActivePage('home')}
+                className="px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+              >
+                <span>←</span>
+                <span>Voltar</span>
+              </button>
+              <h1 className="text-base font-semibold text-white truncate">
+                {PAGE_TITLES[activePage]}
+              </h1>
+            </div>
+
             <button
               type="button"
-              onClick={() => setActivePage('home')}
-              className="px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              onClick={handleSignOut}
+              title="Encerrar sessão"
+              className="text-[11px] px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 text-white/90 font-medium inline-flex items-center gap-1 transition-colors cursor-pointer shrink-0"
             >
-              <span>←</span>
-              <span>Voltar</span>
+              <LogoutIcon />
+              <span>Sair</span>
             </button>
-            <h1 className="text-base font-semibold text-white">
-              {PAGE_TITLES[activePage]}
-            </h1>
           </header>
+        )}
+
+        {toastMessage && (
+          <div className="mx-5 mt-3 px-3.5 py-2.5 rounded-xl bg-[#1E1B4B] text-white text-xs font-medium text-center shadow-sm">
+            {toastMessage}
+          </div>
         )}
 
         {/* ================================================================== */}
@@ -497,7 +922,7 @@ export default function FinanceHomePage() {
         {/* ================================================================== */}
         {activePage === 'home' && (
           <main className="flex-1 px-5 pt-6 pb-8 space-y-7 bg-[#F8F9FA]">
-            {/* SEÇÃO 2: AÇÕES RÁPIDAS (CARROSSEL HORIZONTAL COM RELATÓRIOS) */}
+            {/* SEÇÃO 2: AÇÕES RÁPIDAS */}
             <section>
               <h2
                 style={{ fontSize: '16px', fontWeight: 600, color: '#1A1A1A' }}
@@ -507,10 +932,9 @@ export default function FinanceHomePage() {
               </h2>
 
               <div className="flex items-start justify-between gap-2.5 overflow-x-auto no-scrollbar pb-1">
-                {/* 1. Pagar conta */}
                 <button
                   type="button"
-                  onClick={() => setActiveModal('new_debt')}
+                  onClick={handleOpenNewDebtModal}
                   className="flex flex-col items-center min-w-[68px] group focus:outline-none"
                 >
                   <div
@@ -524,7 +948,6 @@ export default function FinanceHomePage() {
                   </span>
                 </button>
 
-                {/* 2. Novo gasto */}
                 <button
                   type="button"
                   onClick={() => {
@@ -544,7 +967,6 @@ export default function FinanceHomePage() {
                   </span>
                 </button>
 
-                {/* 3. Relatórios (NOVO ÍCONE DE ANALYTICS) */}
                 <button
                   type="button"
                   onClick={() => setActivePage('reports')}
@@ -561,7 +983,6 @@ export default function FinanceHomePage() {
                   </span>
                 </button>
 
-                {/* 4. Metas */}
                 <button
                   type="button"
                   onClick={() => setActivePage('goals')}
@@ -578,7 +999,6 @@ export default function FinanceHomePage() {
                   </span>
                 </button>
 
-                {/* 5. Histórico */}
                 <button
                   type="button"
                   onClick={() => setActivePage('history')}
@@ -614,7 +1034,7 @@ export default function FinanceHomePage() {
 
               {debtsList.length === 0 ? (
                 <div className="bg-white rounded-2xl p-5 border border-dashed border-neutral-200 text-center text-xs text-neutral-500">
-                  Nenhuma dívida cadastrada neste mês
+                  Nenhuma dívida cadastrada em {formatMonthYearLabel(selectedMonthYear)}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -649,7 +1069,7 @@ export default function FinanceHomePage() {
 
               {expensesList.length === 0 ? (
                 <div className="bg-white rounded-2xl p-5 border border-dashed border-neutral-200 text-center text-xs text-neutral-500">
-                  Nenhum gasto registrado
+                  Nenhum gasto registrado em {formatMonthYearLabel(selectedMonthYear)}
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
@@ -671,16 +1091,25 @@ export default function FinanceHomePage() {
         {/* PÁGINA INTERNA: DÍVIDAS                                            */}
         {/* ================================================================== */}
         {activePage === 'debts' && (
-          <main className="flex-1 px-5 pt-6 pb-8 space-y-5 bg-[#F8F9FA]">
+          <main className="flex-1 px-5 pt-5 pb-8 space-y-5 bg-[#F8F9FA]">
+            <MonthSelectorBar
+              monthYear={selectedMonthYear}
+              variant="light"
+              loading={loadingMonth}
+              onPrev={() => handleStepMonth(-1)}
+              onNext={() => handleStepMonth(1)}
+              onOpenCalendar={handleOpenMonthCalendar}
+            />
+
             <div className="flex items-center justify-between">
               <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#1A1A1A' }}>
                 Dívidas do Mês
               </h2>
               <button
                 type="button"
-                onClick={() => setActiveModal('new_debt')}
+                onClick={handleOpenNewDebtModal}
                 style={{ backgroundColor: '#1E1B4B', color: '#FFFFFF' }}
-                className="px-3.5 py-1.5 rounded-full text-xs font-semibold"
+                className="px-3.5 py-1.5 rounded-full text-xs font-semibold cursor-pointer"
               >
                 + Nova Dívida
               </button>
@@ -730,23 +1159,34 @@ export default function FinanceHomePage() {
             </div>
 
             <div className="space-y-3">
-              {debtsList
-                .filter((d) => {
-                  if (debtStatusFilter === 'pending' && d.paid) return false;
-                  if (debtStatusFilter === 'paid' && !d.paid) return false;
-                  if (debtTagFilter !== 'Todas' && d.tag !== debtTagFilter) return false;
-                  return true;
-                })
-                .map((debt) => (
-                  <DebtCardRow
-                    key={debt.id}
-                    debt={debt}
-                    showValues={showValues}
-                    onPay={() => handlePayDebt(debt.id)}
-                    onUndoPay={() => handleUndoPayDebt(debt.id)}
-                    onDelete={() => handleDeleteTransaction(debt.id)}
-                  />
-                ))}
+              {debtsList.filter((d) => {
+                if (debtStatusFilter === 'pending' && d.paid) return false;
+                if (debtStatusFilter === 'paid' && !d.paid) return false;
+                if (debtTagFilter !== 'Todas' && d.tag !== debtTagFilter) return false;
+                return true;
+              }).length === 0 ? (
+                <div className="bg-white rounded-2xl p-5 border border-dashed border-neutral-200 text-center text-xs text-neutral-500">
+                  Nenhuma dívida encontrada em {formatMonthYearLabel(selectedMonthYear)}
+                </div>
+              ) : (
+                debtsList
+                  .filter((d) => {
+                    if (debtStatusFilter === 'pending' && d.paid) return false;
+                    if (debtStatusFilter === 'paid' && !d.paid) return false;
+                    if (debtTagFilter !== 'Todas' && d.tag !== debtTagFilter) return false;
+                    return true;
+                  })
+                  .map((debt) => (
+                    <DebtCardRow
+                      key={debt.id}
+                      debt={debt}
+                      showValues={showValues}
+                      onPay={() => handlePayDebt(debt.id)}
+                      onUndoPay={() => handleUndoPayDebt(debt.id)}
+                      onDelete={() => handleDeleteTransaction(debt.id)}
+                    />
+                  ))
+              )}
             </div>
           </main>
         )}
@@ -755,7 +1195,16 @@ export default function FinanceHomePage() {
         {/* PÁGINA INTERNA: GASTOS & ENTRADAS                                  */}
         {/* ================================================================== */}
         {activePage === 'expenses' && (
-          <main className="flex-1 px-5 pt-6 pb-8 space-y-5 bg-[#F8F9FA]">
+          <main className="flex-1 px-5 pt-5 pb-8 space-y-5 bg-[#F8F9FA]">
+            <MonthSelectorBar
+              monthYear={selectedMonthYear}
+              variant="light"
+              loading={loadingMonth}
+              onPrev={() => handleStepMonth(-1)}
+              onNext={() => handleStepMonth(1)}
+              onOpenCalendar={handleOpenMonthCalendar}
+            />
+
             <div className="flex items-center justify-between gap-2">
               <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#1A1A1A' }}>
                 Gastos & Entradas Extras
@@ -768,7 +1217,7 @@ export default function FinanceHomePage() {
                     setActiveModal('new_expense_or_income');
                   }}
                   style={{ backgroundColor: '#1E1B4B', color: '#FFFFFF' }}
-                  className="px-3 py-1.5 rounded-full text-xs font-semibold"
+                  className="px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer"
                 >
                   + Gasto
                 </button>
@@ -778,7 +1227,7 @@ export default function FinanceHomePage() {
                     setEntryMode('income');
                     setActiveModal('new_expense_or_income');
                   }}
-                  className="px-3 py-1.5 rounded-full bg-emerald-700 text-white text-xs font-semibold"
+                  className="px-3 py-1.5 rounded-full bg-emerald-700 text-white text-xs font-semibold cursor-pointer"
                 >
                   + Entrada Extra
                 </button>
@@ -854,30 +1303,47 @@ export default function FinanceHomePage() {
               <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
                 Gastos Rápidos
               </h3>
-              <div className="grid grid-cols-2 gap-3">
-                {expensesList
-                  .filter(
-                    (exp) => expenseTagFilter === 'Todas' || exp.tag === expenseTagFilter
-                  )
-                  .map((exp) => (
-                    <ExpenseCompactCard
-                      key={exp.id}
-                      expense={exp}
-                      showValues={showValues}
-                      onDelete={() => handleDeleteTransaction(exp.id)}
-                    />
-                  ))}
-              </div>
+              {expensesList.filter(
+                (exp) => expenseTagFilter === 'Todas' || exp.tag === expenseTagFilter
+              ).length === 0 ? (
+                <div className="bg-white rounded-2xl p-5 border border-dashed border-neutral-200 text-center text-xs text-neutral-500">
+                  Nenhum gasto registrado em {formatMonthYearLabel(selectedMonthYear)}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {expensesList
+                    .filter(
+                      (exp) => expenseTagFilter === 'Todas' || exp.tag === expenseTagFilter
+                    )
+                    .map((exp) => (
+                      <ExpenseCompactCard
+                        key={exp.id}
+                        expense={exp}
+                        showValues={showValues}
+                        onDelete={() => handleDeleteTransaction(exp.id)}
+                      />
+                    ))}
+                </div>
+              )}
             </div>
           </main>
         )}
 
         {/* ================================================================== */}
-        {/* PÁGINA INTERNA DEDICADA: RELATÓRIOS (RELATÓRIOS MINIMALISTAS)      */}
+        {/* PÁGINA INTERNA DEDICADA: RELATÓRIOS                                */}
         {/* ================================================================== */}
         {activePage === 'reports' && (
-          <main className="flex-1 px-5 pt-6 pb-8 space-y-5 bg-[#F8F9FA]">
-            {/* NOVO RELATÓRIO: GASTOS COM GASOLINA NO MÊS */}
+          <main className="flex-1 px-5 pt-5 pb-8 space-y-5 bg-[#F8F9FA]">
+            <MonthSelectorBar
+              monthYear={selectedMonthYear}
+              variant="light"
+              loading={loadingMonth}
+              onPrev={() => handleStepMonth(-1)}
+              onNext={() => handleStepMonth(1)}
+              onOpenCalendar={handleOpenMonthCalendar}
+            />
+
+            {/* RELATÓRIO: GASTOS COM GASOLINA NO MÊS SELECIONADO */}
             <section className="bg-white rounded-2xl p-4 border border-neutral-200/80 shadow-sm">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
@@ -978,7 +1444,7 @@ export default function FinanceHomePage() {
 
               {tagRankingList.length === 0 ? (
                 <p className="text-xs text-neutral-500 text-center py-2">
-                  Nenhum gasto ou dívida registrado ainda.
+                  Nenhum gasto ou dívida registrado neste mês.
                 </p>
               ) : (
                 <div className="space-y-2.5">
@@ -1164,19 +1630,32 @@ export default function FinanceHomePage() {
               )}
             </section>
 
-            {/* 6. Fim dos Parcelamentos (Dívidas Parceladas) */}
+            {/* 6. Fim dos Parcelamentos e Dívidas em Andamento (PARTE 2) */}
             <section className="bg-white rounded-2xl p-4 border border-neutral-200/80 shadow-sm space-y-3">
               <div>
                 <h2 className="text-sm font-semibold text-[#1A1A1A]">
-                  6. Fim dos Parcelamentos
+                  6. Fim dos Parcelamentos e Dívidas
                 </h2>
                 <p className="text-xs text-neutral-500">
-                  Compras parceladas ativas, valor ainda comprometido nos próximos meses e previsão de término.
+                  Dívidas em andamento, valor já pago, saldo restante e previsão de quitação.
                 </p>
               </div>
 
               {(() => {
+                const balanceDebts = debtsList
+                  .map((d) => ({
+                    debt: d,
+                    bal: calculateDebtBalanceInfo(
+                      d.due_date,
+                      d.amount,
+                      d.total_debt_amount,
+                      d.already_paid_amount
+                    ),
+                  }))
+                  .filter((item) => item.bal.isBalanceDebt);
+
                 const installmentDebts = debtsList
+                  .filter((d) => !(Number(d.total_debt_amount || 0) > 0))
                   .map((d) => ({
                     debt: d,
                     info: calculateInstallmentInfo(
@@ -1188,15 +1667,23 @@ export default function FinanceHomePage() {
                   }))
                   .filter((item) => item.info.isInstallment);
 
-                const totalCommittedFuture = installmentDebts.reduce(
+                const totalCommittedBalance = balanceDebts.reduce(
+                  (acc, item) => acc + item.bal.remainingBalance,
+                  0
+                );
+                const totalCommittedInst = installmentDebts.reduce(
                   (acc, item) => acc + Number(item.debt.amount) * item.info.remaining,
                   0
                 );
+                const totalCommittedFuture = totalCommittedBalance + totalCommittedInst;
+                const activeCount =
+                  balanceDebts.filter((x) => !x.bal.isFullyPaid).length +
+                  installmentDebts.filter((x) => x.info.remaining > 0).length;
 
-                if (installmentDebts.length === 0) {
+                if (balanceDebts.length === 0 && installmentDebts.length === 0) {
                   return (
                     <p className="text-xs text-neutral-500 text-center py-2">
-                      Nenhuma compra parcelada cadastrada no momento.
+                      Nenhuma dívida parcelada ou com saldo total cadastrada neste mês.
                     </p>
                   );
                 }
@@ -1206,10 +1693,10 @@ export default function FinanceHomePage() {
                     <div className="p-3 rounded-xl bg-[#EEF2FF] border border-indigo-200 flex items-center justify-between">
                       <div>
                         <span className="block text-[11px] font-medium text-[#1E1B4B]">
-                          Total ainda comprometido (próximas parcelas)
+                          Saldo devedor total restante
                         </span>
                         <span className="text-[11px] text-neutral-500">
-                          {installmentDebts.filter((x) => x.info.remaining > 0).length} parcelamento(s) ativo(s)
+                          {activeCount} dívida(s) em andamento
                         </span>
                       </div>
                       <strong className="text-sm font-bold text-[#1E1B4B]">
@@ -1218,6 +1705,68 @@ export default function FinanceHomePage() {
                     </div>
 
                     <div className="space-y-2.5">
+                      {balanceDebts.map(({ debt, bal }) => (
+                        <div
+                          key={debt.id}
+                          className="p-3 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 space-y-2"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-xs font-semibold text-[#1A1A1A]">
+                                  {debt.title}
+                                </span>
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-white border border-neutral-200 text-neutral-600">
+                                  #{debt.tag}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-neutral-600 mt-1">
+                                Pago:{' '}
+                                <strong className="text-[#1A1A1A]">
+                                  {formatBRL(bal.alreadyPaid, showValues)}
+                                </strong>{' '}
+                                de {formatBRL(bal.totalDebt, showValues)}
+                              </p>
+                              <p className="text-[11px] text-neutral-500 mt-0.5">
+                                {bal.isFullyPaid ? (
+                                  <span className="text-emerald-700 font-semibold">
+                                    Dívida 100% quitada 🎉
+                                  </span>
+                                ) : (
+                                  <>
+                                    Quita em <strong className="text-[#1A1A1A]">{bal.endMonthYear}</strong>{' '}
+                                    ({bal.remainingInstallments}{' '}
+                                    {bal.remainingInstallments === 1
+                                      ? 'parcela restante'
+                                      : 'parcelas restantes'}
+                                    )
+                                  </>
+                                )}
+                              </p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <span className="block text-[10px] text-neutral-500">
+                                Falta pagar
+                              </span>
+                              <strong className="text-xs font-bold text-[#1E1B4B]">
+                                {formatBRL(bal.remainingBalance, showValues)}
+                              </strong>
+                            </div>
+                          </div>
+
+                          <div className="w-full h-1.5 rounded-full bg-neutral-200 overflow-hidden">
+                            <div
+                              style={{
+                                width: `${bal.progressPct}%`,
+                                background:
+                                  'linear-gradient(90deg, #1E1B4B 0%, #2A1B4E 100%)',
+                              }}
+                              className="h-full rounded-full transition-all"
+                            />
+                          </div>
+                        </div>
+                      ))}
+
                       {installmentDebts.map(({ debt, info }) => {
                         const committedValue = Number(debt.amount) * info.remaining;
                         return (
@@ -1243,7 +1792,7 @@ export default function FinanceHomePage() {
                               </div>
                               <div className="text-right shrink-0">
                                 <span className="block text-[10px] text-neutral-500">
-                                  Restante total
+                                  Falta pagar
                                 </span>
                                 <strong className="text-xs font-bold text-[#1E1B4B]">
                                   {formatBRL(committedValue, showValues)}
@@ -1306,7 +1855,7 @@ export default function FinanceHomePage() {
               <button
                 type="submit"
                 style={{ backgroundColor: '#1E1B4B', color: '#FFFFFF' }}
-                className="w-full py-2.5 rounded-full text-xs font-semibold"
+                className="w-full py-2.5 rounded-full text-xs font-semibold cursor-pointer"
               >
                 Salvar Meta da Tag
               </button>
@@ -1361,7 +1910,16 @@ export default function FinanceHomePage() {
         {/* PÁGINA INTERNA DEDICADA: HISTÓRICO                                 */}
         {/* ================================================================== */}
         {activePage === 'history' && (
-          <main className="flex-1 px-5 pt-6 pb-8 space-y-4 bg-[#F8F9FA]">
+          <main className="flex-1 px-5 pt-5 pb-8 space-y-4 bg-[#F8F9FA]">
+            <MonthSelectorBar
+              monthYear={selectedMonthYear}
+              variant="light"
+              loading={loadingMonth}
+              onPrev={() => handleStepMonth(-1)}
+              onNext={() => handleStepMonth(1)}
+              onOpenCalendar={handleOpenMonthCalendar}
+            />
+
             <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
               {allHistoryTags.map((tag) => {
                 const active = historyTagFilter === tag;
@@ -1434,6 +1992,12 @@ export default function FinanceHomePage() {
                     </span>
                   </div>
                 ))}
+
+              {incomes.length === 0 && transactions.length === 0 && (
+                <div className="bg-white rounded-2xl p-5 border border-dashed border-neutral-200 text-center text-xs text-neutral-500">
+                  Nenhuma movimentação registrada em {formatMonthYearLabel(selectedMonthYear)}
+                </div>
+              )}
             </div>
           </main>
         )}
@@ -1482,7 +2046,83 @@ export default function FinanceHomePage() {
       </div>
 
       {/* ==================================================================== */}
-      {/* MODAIS DE CADASTRO E SALÁRIO (BOTÕES PÍLULA EM AZUL CEREJA)          */}
+      {/* MODAL: POP-UP DE CALENDÁRIO MENSAL (PARTE 3)                         */}
+      {/* ==================================================================== */}
+      {activeModal === 'month_calendar' && (
+        <ModalOverlay onClose={() => setActiveModal(null)}>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setCalendarYear((y) => y - 1)}
+                className="w-9 h-9 rounded-full bg-[#F0F0F2] hover:bg-neutral-200 text-[#1E1B4B] font-bold flex items-center justify-center cursor-pointer"
+                aria-label="Ano anterior"
+              >
+                ‹
+              </button>
+              <h3 className="text-base font-bold text-[#1A1A1A]">{calendarYear}</h3>
+              <button
+                type="button"
+                onClick={() => setCalendarYear((y) => y + 1)}
+                className="w-9 h-9 rounded-full bg-[#F0F0F2] hover:bg-neutral-200 text-[#1E1B4B] font-bold flex items-center justify-center cursor-pointer"
+                aria-label="Próximo ano"
+              >
+                ›
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              {PT_MONTHS_SHORT.map((label, idx) => {
+                const candidate = `${calendarYear}-${String(idx + 1).padStart(2, '0')}`;
+                const isSelected = candidate === selectedMonthYear;
+                const isCurrentReal = candidate === currentRealMonthYear;
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => handlePickMonthFromCalendar(idx)}
+                    style={
+                      isSelected
+                        ? { backgroundColor: '#1E1B4B', color: '#FFFFFF', borderColor: '#1E1B4B' }
+                        : {}
+                    }
+                    className={`py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                      isSelected
+                        ? 'shadow-sm'
+                        : isCurrentReal
+                        ? 'bg-[#EEF2FF] text-[#1E1B4B] border-indigo-200'
+                        : 'bg-[#F8F9FA] text-[#1A1A1A] border-neutral-200 hover:bg-neutral-100'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={handleJumpToCurrentMonth}
+                style={{ backgroundColor: '#EEF2FF', color: '#1E1B4B' }}
+                className="flex-1 py-2.5 rounded-full text-xs font-semibold hover:bg-indigo-100 transition-colors cursor-pointer"
+              >
+                Hoje / Mês Atual
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveModal(null)}
+                className="px-4 py-2.5 rounded-full bg-[#F0F0F2] text-xs font-semibold text-[#1A1A1A] cursor-pointer"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </ModalOverlay>
+      )}
+
+      {/* ==================================================================== */}
+      {/* MODAIS DE SALÁRIO                                                    */}
       {/* ==================================================================== */}
       {activeModal === 'confirm_salary' && (
         <ModalOverlay onClose={() => setActiveModal(null)}>
@@ -1494,13 +2134,15 @@ export default function FinanceHomePage() {
               Deseja alterar o seu salário atual?
             </h3>
             <p className="text-sm text-neutral-500">
-              Salário base atual: <strong>{formatBRL(baseSalary, true)}</strong>
+              Competência: <strong>{formatMonthYearLabel(selectedMonthYear)}</strong>
+              <br />
+              Salário base configurado: <strong>{formatBRL(baseSalary, true)}</strong>
             </p>
             <div className="flex items-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="flex-1 py-2.5 px-4 rounded-full bg-[#F0F0F2] text-[#1A1A1A] text-sm font-semibold"
+                className="flex-1 py-2.5 px-4 rounded-full bg-[#F0F0F2] text-[#1A1A1A] text-sm font-semibold cursor-pointer"
               >
                 Cancelar
               </button>
@@ -1508,7 +2150,7 @@ export default function FinanceHomePage() {
                 type="button"
                 onClick={handleConfirmSalaryStep}
                 style={{ backgroundColor: '#1E1B4B', color: '#FFFFFF' }}
-                className="flex-1 py-2.5 px-4 rounded-full text-sm font-semibold"
+                className="flex-1 py-2.5 px-4 rounded-full text-sm font-semibold cursor-pointer"
               >
                 Sim, alterar
               </button>
@@ -1524,7 +2166,7 @@ export default function FinanceHomePage() {
               Novo Salário Base
             </h3>
             <p className="text-xs text-neutral-500">
-              Digite o novo valor do seu salário base. O saldo atual disponível será recalculado imediatamente.
+              Competência selecionada: <strong>{formatMonthYearLabel(selectedMonthYear)}</strong>. O saldo atual disponível será recalculado imediatamente.
             </p>
             <div>
               <label className="block text-xs font-medium text-neutral-600 mb-1">
@@ -1546,14 +2188,14 @@ export default function FinanceHomePage() {
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="flex-1 py-2.5 rounded-full bg-[#F0F0F2] text-sm font-semibold text-[#1A1A1A]"
+                className="flex-1 py-2.5 rounded-full bg-[#F0F0F2] text-sm font-semibold text-[#1A1A1A] cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 style={{ backgroundColor: '#1E1B4B', color: '#FFFFFF' }}
-                className="flex-1 py-2.5 rounded-full text-sm font-semibold"
+                className="flex-1 py-2.5 rounded-full text-sm font-semibold cursor-pointer"
               >
                 Salvar Salário
               </button>
@@ -1562,57 +2204,279 @@ export default function FinanceHomePage() {
         </ModalOverlay>
       )}
 
+      {/* ==================================================================== */}
+      {/* MODAL: NOVA DÍVIDA (PARTE 2 — VALOR TOTAL, JÁ PAGO E PARCELAS)       */}
+      {/* ==================================================================== */}
       {activeModal === 'new_debt' && (
         <ModalOverlay onClose={() => setActiveModal(null)}>
-          <form onSubmit={handleCreateDebt} className="space-y-4">
+          <form onSubmit={handleCreateDebt} className="space-y-3.5 max-h-[80vh] overflow-y-auto pr-0.5">
             <h3 className="text-lg font-semibold text-[#1A1A1A]">
               Cadastrar Nova Dívida
             </h3>
 
+            {/* Alternador de modo */}
+            <div className="grid grid-cols-2 p-1 rounded-full bg-[#F0F0F2]">
+              <button
+                type="button"
+                onClick={() => {
+                  setDebtFormMode('balance');
+                  setDebtFormError('');
+                }}
+                style={
+                  debtFormMode === 'balance'
+                    ? { backgroundColor: '#1E1B4B', color: '#FFFFFF' }
+                    : {}
+                }
+                className={`py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                  debtFormMode === 'balance' ? 'shadow-sm' : 'text-neutral-600'
+                }`}
+              >
+                Por Valor Total
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDebtFormMode('simple');
+                  setDebtFormError('');
+                }}
+                style={
+                  debtFormMode === 'simple'
+                    ? { backgroundColor: '#1E1B4B', color: '#FFFFFF' }
+                    : {}
+                }
+                className={`py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                  debtFormMode === 'simple' ? 'shadow-sm' : 'text-neutral-600'
+                }`}
+              >
+                Conta Fixa / Simples
+              </button>
+            </div>
+
             <div>
               <label className="block text-xs font-medium text-neutral-600 mb-1">
-                Descrição da Conta / Dívida
+                Nome / Descrição da Dívida
               </label>
               <input
                 type="text"
                 required
                 value={debtDesc}
                 onChange={(e) => setDebtDesc(e.target.value)}
-                placeholder="Ex: Conta de Luz, Internet..."
+                placeholder="Ex: Empréstimo, Cartão, Internet..."
                 className="w-full px-3.5 py-2 rounded-xl border border-neutral-300 text-sm focus:outline-none focus:border-[#1E1B4B]"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-neutral-600 mb-1">
-                  Valor (R$)
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  required
-                  value={debtAmount}
-                  onChange={(e) => setDebtAmount(e.target.value)}
-                  placeholder="120.00"
-                  className="w-full px-3.5 py-2 rounded-xl border border-neutral-300 text-sm focus:outline-none focus:border-[#1E1B4B]"
-                />
-              </div>
+            {debtFormMode === 'balance' ? (
+              <>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">
+                      Valor Total da Dívida (R$)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      required
+                      value={debtTotalAmount}
+                      onChange={(e) => setDebtTotalAmount(e.target.value)}
+                      placeholder="2000.00"
+                      className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-sm focus:outline-none focus:border-[#1E1B4B]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">
+                      Quanto já foi pago (R$)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={debtAlreadyPaid}
+                      onChange={(e) => setDebtAlreadyPaid(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-sm focus:outline-none focus:border-[#1E1B4B]"
+                    />
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-xs font-medium text-neutral-600 mb-1">
-                  Vencimento
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={debtDueDate}
-                  onChange={(e) => setDebtDueDate(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-sm focus:outline-none focus:border-[#1E1B4B]"
-                />
-              </div>
-            </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">
+                      Valor das Próximas Parcelas (R$)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      required
+                      value={debtNextInstallment}
+                      onChange={(e) => setDebtNextInstallment(e.target.value)}
+                      placeholder="250.00"
+                      className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-sm focus:outline-none focus:border-[#1E1B4B]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">
+                      Data de Vencimento
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={debtDueDate}
+                      onChange={(e) => setDebtDueDate(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-sm focus:outline-none focus:border-[#1E1B4B]"
+                    />
+                  </div>
+                </div>
+
+                {/* PREVIEW AUTOMÁTICO EM TEMPO REAL */}
+                {debtBalancePreview && (
+                  <div className="p-3 rounded-2xl bg-[#EEF2FF] border border-indigo-200 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[#1E1B4B] font-medium">Saldo Restante</span>
+                      <strong className="text-[#1E1B4B] font-bold">
+                        {formatBRL(debtBalancePreview.info.remainingBalance, true)}
+                      </strong>
+                    </div>
+
+                    {debtBalancePreview.overpaid ? (
+                      <p className="text-[11px] font-medium text-red-600">
+                        O valor já pago ultrapassa o valor total informado.
+                      </p>
+                    ) : debtBalancePreview.info.isFullyPaid ? (
+                      <p className="text-xs font-semibold text-emerald-700">
+                        Dívida 100% quitada 🎉
+                      </p>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-neutral-600">Parcelas Restantes</span>
+                          <strong className="text-[#1A1A1A]">
+                            {debtBalancePreview.info.installmentAmount > 0
+                              ? `${debtBalancePreview.info.remainingInstallments} ${
+                                  debtBalancePreview.info.remainingInstallments === 1
+                                    ? 'parcela'
+                                    : 'parcelas'
+                                }`
+                              : 'Informe o valor da parcela'}
+                          </strong>
+                        </div>
+                        {debtBalancePreview.info.installmentAmount > 0 && (
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-neutral-600">Previsão de Quitação</span>
+                            <strong className="text-[#1E1B4B]">
+                              Quitação prevista: {debtBalancePreview.info.endMonthYear}
+                            </strong>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    <div className="w-full h-1.5 rounded-full bg-indigo-200/80 overflow-hidden">
+                      <div
+                        style={{
+                          width: `${debtBalancePreview.info.progressPct}%`,
+                          background: 'linear-gradient(90deg, #1E1B4B 0%, #2A1B4E 100%)',
+                        }}
+                        className="h-full rounded-full transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">
+                      Valor (R$)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      required
+                      value={debtAmount}
+                      onChange={(e) => setDebtAmount(e.target.value)}
+                      placeholder="120.00"
+                      className="w-full px-3.5 py-2 rounded-xl border border-neutral-300 text-sm focus:outline-none focus:border-[#1E1B4B]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">
+                      Vencimento
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={debtDueDate}
+                      onChange={(e) => setDebtDueDate(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-sm focus:outline-none focus:border-[#1E1B4B]"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#F8F9FA] border border-neutral-200 space-y-2.5">
+                  <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={isInstallmentDebt}
+                      onChange={(e) => setIsInstallmentDebt(e.target.checked)}
+                      className="w-4 h-4 accent-[#1E1B4B] rounded cursor-pointer"
+                    />
+                    <span className="text-xs font-semibold text-[#1A1A1A]">
+                      Controlar por Parcela X de Y?
+                    </span>
+                  </label>
+
+                  {isInstallmentDebt && (
+                    <div className="grid grid-cols-2 gap-3 pt-1">
+                      <div>
+                        <label className="block text-[11px] font-medium text-neutral-600 mb-1">
+                          Parcela Atual
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="360"
+                          required={isInstallmentDebt}
+                          value={debtCurrentInstallment}
+                          onChange={(e) => setDebtCurrentInstallment(e.target.value)}
+                          placeholder="Ex: 3"
+                          className="w-full px-3 py-2 rounded-xl border border-neutral-300 bg-white text-sm focus:outline-none focus:border-[#1E1B4B]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-medium text-neutral-600 mb-1">
+                          Total de Parcelas
+                        </label>
+                        <input
+                          type="number"
+                          min="2"
+                          max="360"
+                          required={isInstallmentDebt}
+                          value={debtTotalInstallments}
+                          onChange={(e) => setDebtTotalInstallments(e.target.value)}
+                          placeholder="Ex: 10"
+                          className="w-full px-3 py-2 rounded-xl border border-neutral-300 bg-white text-sm focus:outline-none focus:border-[#1E1B4B]"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+            {debtDueDate &&
+              /^\d{4}-\d{2}/.test(debtDueDate) &&
+              debtDueDate.slice(0, 7) !== selectedMonthYear && (
+                <p className="text-[11px] text-[#1E1B4B] bg-[#EEF2FF] px-3 py-1.5 rounded-lg font-medium">
+                  Mês de competência pela data de vencimento:{' '}
+                  <strong>{formatMonthYearLabel(debtDueDate.slice(0, 7))}</strong>
+                </p>
+              )}
 
             <div>
               <label className="block text-xs font-medium text-neutral-600 mb-1.5">
@@ -1636,7 +2500,7 @@ export default function FinanceHomePage() {
                         ? { backgroundColor: '#1E1B4B', color: '#FFFFFF', borderColor: '#1E1B4B' }
                         : {}
                     }
-                    className={`py-2 px-2 rounded-xl border text-xs font-medium flex flex-col items-center gap-1 ${
+                    className={`py-2 px-2 rounded-xl border text-xs font-medium flex flex-col items-center gap-1 cursor-pointer ${
                       debtIcon === item.id
                         ? ''
                         : 'border-neutral-200 bg-neutral-50 text-neutral-700'
@@ -1662,72 +2526,24 @@ export default function FinanceHomePage() {
               />
             </div>
 
-            {/* Opção de Dívida Parcelada / Com Tempo de Vida */}
-            <div className="p-3 rounded-xl bg-[#F8F9FA] border border-neutral-200 space-y-3">
-              <label className="flex items-center gap-2.5 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={isInstallmentDebt}
-                  onChange={(e) => setIsInstallmentDebt(e.target.checked)}
-                  className="w-4 h-4 accent-[#1E1B4B] rounded cursor-pointer"
-                />
-                <span className="text-xs font-semibold text-[#1A1A1A]">
-                  É uma dívida parcelada / com tempo de vida?
-                </span>
-              </label>
+            {debtFormError && (
+              <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs font-medium text-red-700">
+                {debtFormError}
+              </div>
+            )}
 
-              {isInstallmentDebt ? (
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <div>
-                    <label className="block text-[11px] font-medium text-neutral-600 mb-1">
-                      Parcela Atual
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="360"
-                      required={isInstallmentDebt}
-                      value={debtCurrentInstallment}
-                      onChange={(e) => setDebtCurrentInstallment(e.target.value)}
-                      placeholder="Ex: 3"
-                      className="w-full px-3 py-2 rounded-xl border border-neutral-300 bg-white text-sm focus:outline-none focus:border-[#1E1B4B]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-medium text-neutral-600 mb-1">
-                      Total de Parcelas
-                    </label>
-                    <input
-                      type="number"
-                      min="2"
-                      max="360"
-                      required={isInstallmentDebt}
-                      value={debtTotalInstallments}
-                      onChange={(e) => setDebtTotalInstallments(e.target.value)}
-                      placeholder="Ex: 10"
-                      className="w-full px-3 py-2 rounded-xl border border-neutral-300 bg-white text-sm focus:outline-none focus:border-[#1E1B4B]"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <p className="text-[11px] text-neutral-500">
-                  Conta fixa contínua ou parcela única (sem limite de parcelas).
-                </p>
-              )}
-            </div>
-
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-3 pt-1">
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="flex-1 py-2.5 rounded-full bg-[#F0F0F2] text-sm font-semibold text-[#1A1A1A]"
+                className="flex-1 py-2.5 rounded-full bg-[#F0F0F2] text-sm font-semibold text-[#1A1A1A] cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 style={{ backgroundColor: '#1E1B4B', color: '#FFFFFF' }}
-                className="flex-1 py-2.5 rounded-full text-sm font-semibold"
+                className="flex-1 py-2.5 rounded-full text-sm font-semibold cursor-pointer"
               >
                 Salvar Dívida
               </button>
@@ -1736,6 +2552,9 @@ export default function FinanceHomePage() {
         </ModalOverlay>
       )}
 
+      {/* ==================================================================== */}
+      {/* MODAL: NOVO GASTO OU NOVA ENTRADA EXTRA                              */}
+      {/* ==================================================================== */}
       {activeModal === 'new_expense_or_income' && (
         <ModalOverlay onClose={() => setActiveModal(null)}>
           <div className="space-y-4">
@@ -1748,7 +2567,7 @@ export default function FinanceHomePage() {
                     ? { backgroundColor: '#1E1B4B', color: '#FFFFFF' }
                     : {}
                 }
-                className={`py-2 rounded-full text-xs font-semibold transition-all ${
+                className={`py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                   entryMode === 'expense' ? 'shadow-sm' : 'text-neutral-600'
                 }`}
               >
@@ -1762,13 +2581,20 @@ export default function FinanceHomePage() {
                     ? { backgroundColor: '#1E1B4B', color: '#FFFFFF' }
                     : {}
                 }
-                className={`py-2 rounded-full text-xs font-semibold transition-all ${
+                className={`py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                   entryMode === 'income' ? 'shadow-sm' : 'text-neutral-600'
                 }`}
               >
                 Nova Entrada Extra
               </button>
             </div>
+
+            {!isViewingCurrentMonth && (
+              <p className="text-[11px] text-[#1E1B4B] bg-[#EEF2FF] px-3 py-1.5 rounded-lg font-medium text-center">
+                Lançamento será registrado em{' '}
+                <strong>{formatMonthYearLabel(selectedMonthYear)}</strong>
+              </p>
+            )}
 
             {entryMode === 'expense' ? (
               <form onSubmit={handleCreateExpense} className="space-y-4">
@@ -1837,7 +2663,7 @@ export default function FinanceHomePage() {
                             ? { backgroundColor: '#1E1B4B', color: '#FFFFFF', borderColor: '#1E1B4B' }
                             : {}
                         }
-                        className={`py-2 px-1.5 rounded-xl border text-xs font-medium ${
+                        className={`py-2 px-1.5 rounded-xl border text-xs font-medium cursor-pointer ${
                           expenseIcon === item.id
                             ? ''
                             : 'border-neutral-200 bg-neutral-50 text-neutral-700'
@@ -1881,14 +2707,14 @@ export default function FinanceHomePage() {
                   <button
                     type="button"
                     onClick={() => setActiveModal(null)}
-                    className="flex-1 py-2.5 rounded-full bg-[#F0F0F2] text-sm font-semibold text-[#1A1A1A]"
+                    className="flex-1 py-2.5 rounded-full bg-[#F0F0F2] text-sm font-semibold text-[#1A1A1A] cursor-pointer"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     style={{ backgroundColor: '#1E1B4B', color: '#FFFFFF' }}
-                    className="flex-1 py-2.5 rounded-full text-sm font-semibold"
+                    className="flex-1 py-2.5 rounded-full text-sm font-semibold cursor-pointer"
                   >
                     Salvar Gasto
                   </button>
@@ -1900,7 +2726,7 @@ export default function FinanceHomePage() {
                   Nova Entrada Extra
                 </h3>
                 <p className="text-xs text-neutral-500">
-                  Soma ao total disponível sem apagar o seu salário base.
+                  Soma ao total disponível de {formatMonthYearLabel(selectedMonthYear)} sem apagar o seu salário base.
                 </p>
 
                 <div>
@@ -1951,14 +2777,14 @@ export default function FinanceHomePage() {
                   <button
                     type="button"
                     onClick={() => setActiveModal(null)}
-                    className="flex-1 py-2.5 rounded-full bg-[#F0F0F2] text-sm font-semibold text-[#1A1A1A]"
+                    className="flex-1 py-2.5 rounded-full bg-[#F0F0F2] text-sm font-semibold text-[#1A1A1A] cursor-pointer"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     style={{ backgroundColor: '#1E1B4B', color: '#FFFFFF' }}
-                    className="flex-1 py-2.5 rounded-full text-sm font-semibold"
+                    className="flex-1 py-2.5 rounded-full text-sm font-semibold cursor-pointer"
                   >
                     Somar Entrada
                   </button>
@@ -1968,6 +2794,67 @@ export default function FinanceHomePage() {
           </div>
         </ModalOverlay>
       )}
+    </div>
+  );
+}
+
+function MonthSelectorBar({
+  monthYear,
+  variant,
+  loading,
+  onPrev,
+  onNext,
+  onOpenCalendar,
+}: {
+  monthYear: string;
+  variant: 'dark' | 'light';
+  loading?: boolean;
+  onPrev: () => void;
+  onNext: () => void;
+  onOpenCalendar: () => void;
+}) {
+  const isDark = variant === 'dark';
+  return (
+    <div
+      className={`flex items-center justify-between gap-2 px-2 py-1.5 rounded-2xl border ${
+        isDark
+          ? 'bg-white/10 border-white/15 text-white'
+          : 'bg-white border-neutral-200/80 shadow-sm text-[#1E1B4B]'
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onPrev}
+        aria-label="Mês anterior"
+        className={`w-8 h-8 rounded-full flex items-center justify-center text-base font-semibold transition-colors cursor-pointer ${
+          isDark ? 'hover:bg-white/15 text-white' : 'bg-[#F0F0F2] hover:bg-neutral-200 text-[#1E1B4B]'
+        }`}
+      >
+        ‹
+      </button>
+
+      <button
+        type="button"
+        onClick={onOpenCalendar}
+        className={`flex-1 py-1 px-2 rounded-xl inline-flex items-center justify-center gap-2 text-xs font-semibold transition-colors cursor-pointer ${
+          isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-[#EEF2FF] text-[#1E1B4B]'
+        }`}
+      >
+        <CalendarSmallIcon />
+        <span>{formatMonthYearLabel(monthYear)}</span>
+        {loading && <span className="text-[10px] opacity-70">•••</span>}
+      </button>
+
+      <button
+        type="button"
+        onClick={onNext}
+        aria-label="Próximo mês"
+        className={`w-8 h-8 rounded-full flex items-center justify-center text-base font-semibold transition-colors cursor-pointer ${
+          isDark ? 'hover:bg-white/15 text-white' : 'bg-[#F0F0F2] hover:bg-neutral-200 text-[#1E1B4B]'
+        }`}
+      >
+        ›
+      </button>
     </div>
   );
 }
@@ -1986,6 +2873,12 @@ function DebtCardRow({
   onDelete: () => void;
 }) {
   const statusInfo = calculateDueStatus(debt.due_date, debt.paid);
+  const balInfo = calculateDebtBalanceInfo(
+    debt.due_date,
+    debt.amount,
+    debt.total_debt_amount,
+    debt.already_paid_amount
+  );
   const instInfo = calculateInstallmentInfo(
     debt.due_date,
     debt.paid,
@@ -2011,15 +2904,18 @@ function DebtCardRow({
               </span>
             </div>
             <p
-              style={{ fontSize: '14px', fontWeight: 400 }}
-              className="text-neutral-500 leading-snug mt-0.5"
+              className={`leading-snug mt-0.5 ${
+                balInfo.isBalanceDebt
+                  ? 'text-sm font-bold text-[#1E1B4B]'
+                  : 'text-sm font-normal text-neutral-500'
+              }`}
             >
               {formatBRL(debt.amount, showValues)}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           <span
             style={{
               backgroundColor: statusInfo.bgColor,
@@ -2063,8 +2959,56 @@ function DebtCardRow({
         </div>
       </div>
 
-      {/* Exibição Visual de Parcelas / Tempo de Vida (quando total_installments > 1) */}
-      {instInfo.isInstallment && (
+      {/* PARTE 2: Acompanhamento por Valor Total e Saldo Pago (total_debt_amount > 0) */}
+      {balInfo.isBalanceDebt && (
+        <div className="pt-2.5 border-t border-neutral-100 space-y-1.5">
+          <div className="flex items-center justify-between gap-2 flex-wrap text-[11px]">
+            <span className="text-neutral-600 font-medium">
+              Pago:{' '}
+              <strong className="text-[#1A1A1A]">
+                {formatBRL(balInfo.alreadyPaid, showValues)}
+              </strong>{' '}
+              de {formatBRL(balInfo.totalDebt, showValues)}
+            </span>
+            <span className="text-[#1E1B4B] font-semibold">
+              Falta: {formatBRL(balInfo.remainingBalance, showValues)}
+            </span>
+          </div>
+
+          <div className="w-full h-1.5 rounded-full bg-neutral-200 overflow-hidden">
+            <div
+              style={{
+                width: `${balInfo.progressPct}%`,
+                background: 'linear-gradient(90deg, #1E1B4B 0%, #2A1B4E 100%)',
+              }}
+              className="h-full rounded-full transition-all duration-300"
+            />
+          </div>
+
+          <div className="flex items-center justify-between gap-2 flex-wrap text-[11px]">
+            {balInfo.isFullyPaid ? (
+              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold border border-emerald-200">
+                Dívida 100% quitada 🎉
+              </span>
+            ) : (
+              <span className="text-neutral-500 font-medium">
+                Quita em <strong className="text-[#1A1A1A]">{balInfo.endMonthYear}</strong> (
+                {balInfo.remainingInstallments}{' '}
+                {balInfo.remainingInstallments === 1
+                  ? 'parcela restante'
+                  : 'parcelas restantes'}
+                )
+              </span>
+            )}
+            <span className="text-[11px] font-semibold text-[#1E1B4B]">
+              {balInfo.progressPct}%
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Exibição Visual de Parcelas (X de Y) quando não usa saldo total */}
+      {!balInfo.isBalanceDebt && instInfo.isInstallment && (
         <div className="pt-2 border-t border-neutral-100 space-y-1.5">
           <div className="flex items-center justify-between gap-2 flex-wrap text-[11px]">
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -2091,7 +3035,6 @@ function DebtCardRow({
             </span>
           </div>
 
-          {/* Barra de progresso fina em Azul Cereja */}
           <div className="w-full h-1.5 rounded-full bg-neutral-200 overflow-hidden">
             <div
               style={{
@@ -2143,6 +3086,60 @@ function ExpenseCompactCard({
         <TrashIcon />
       </button>
     </div>
+  );
+}
+
+function CalendarSmallIcon() {
+  return (
+    <svg
+      className="w-3.5 h-3.5 shrink-0"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  );
+}
+
+function LockShieldIcon() {
+  return (
+    <svg
+      className="w-6 h-6"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+}
+
+function LogoutIcon() {
+  return (
+    <svg
+      className="w-3 h-3"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
   );
 }
 
