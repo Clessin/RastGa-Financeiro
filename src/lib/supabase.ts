@@ -78,10 +78,22 @@ export function translateAuthError(rawMessage?: string): string {
   return rawMessage || 'Não foi possível concluir a autenticação. Tente novamente.';
 }
 
+// ID exclusivo da conta autorizada a acessar este aplicativo privado
+export const AUTHORIZED_OWNER_UID = '62b4b304-e530-4930-88fb-4898e9f042dd';
+
+export function isAuthorizedOwnerSession(session: Session | null): boolean {
+  return Boolean(session && session.user && session.user.id === AUTHORIZED_OWNER_UID);
+}
+
 export async function getActiveSession(): Promise<Session | null> {
   if (!supabase) return null;
   try {
     const { data } = await supabase.auth.getSession();
+    if (!data.session) return null;
+    if (!isAuthorizedOwnerSession(data.session)) {
+      await supabase.auth.signOut();
+      return null;
+    }
     return data.session;
   } catch {
     return null;
@@ -97,7 +109,7 @@ export async function signInWithEmailPassword(
   }
   const normalizedEmail = normalizeLoginIdentifier(identifier);
   if (!normalizedEmail) {
-    return { session: null, error: 'Informe um usuário (mín. 2 caracteres) ou um e-mail válido.' };
+    return { session: null, error: 'Informe um usuário ou e-mail válido.' };
   }
   if (!password) {
     return { session: null, error: 'Digite sua senha para continuar.' };
@@ -110,54 +122,27 @@ export async function signInWithEmailPassword(
     if (error || !data.session) {
       return { session: null, error: translateAuthError(error?.message) };
     }
+    if (!isAuthorizedOwnerSession(data.session)) {
+      await supabase.auth.signOut();
+      return {
+        session: null,
+        error: 'Acesso restrito ao proprietário deste aplicativo.',
+      };
+    }
     return { session: data.session };
   } catch {
     return { session: null, error: 'Erro de conexão ao tentar entrar.' };
   }
 }
 
-export async function signUpWithEmailPassword(
-  identifier: string,
-  password: string
-): Promise<{ session: Session | null; error?: string }> {
-  if (!supabase) {
-    return { session: null, error: 'Cliente Supabase não configurado.' };
-  }
-  const normalizedEmail = normalizeLoginIdentifier(identifier);
-  if (!normalizedEmail) {
-    return { session: null, error: 'Informe um usuário (mín. 2 caracteres) ou um e-mail válido.' };
-  }
-  if (!password || password.length < 6) {
-    return { session: null, error: 'A senha deve ter pelo menos 6 caracteres.' };
-  }
-  try {
-    const { data, error } = await supabase.auth.signUp({
-      email: normalizedEmail,
-      password,
-    });
-    if (error) {
-      return { session: null, error: translateAuthError(error.message) };
-    }
-    if (data.session) {
-      return { session: data.session };
-    }
-    // Caso a confirmação automática no banco tenha validado a conta, inicia a sessão imediatamente
-    const signInRes = await supabase.auth.signInWithPassword({
-      email: normalizedEmail,
-      password,
-    });
-    if (signInRes.error || !signInRes.data.session) {
-      return {
-        session: null,
-        error: translateAuthError(
-          signInRes.error?.message || 'Conta criada! Clique em Entrar para acessar.'
-        ),
-      };
-    }
-    return { session: signInRes.data.session };
-  } catch {
-    return { session: null, error: 'Erro de conexão ao tentar criar a conta.' };
-  }
+export async function signUpWithEmailPassword(): Promise<{
+  session: Session | null;
+  error?: string;
+}> {
+  return {
+    session: null,
+    error: 'Novos cadastros estão desativados neste aplicativo privado.',
+  };
 }
 
 export async function signOutUser(): Promise<void> {
