@@ -34,11 +34,11 @@ import {
   deleteTransactionDB,
   fetchAllFinanceData,
   getActiveSession,
+  isAuthorizedOwnerSession,
   markDebtPaidDB,
   markDebtUnpaidDB,
   signInWithEmailPassword,
   signOutUser,
-  signUpWithEmailPassword,
   supabase,
   updateBaseSalaryDB,
 } from '@/lib/supabase';
@@ -62,10 +62,9 @@ const PAGE_TITLES: Record<Exclude<ActivePage, 'home'>, string> = {
 };
 
 export default function FinanceHomePage() {
-  // Parte 1: Autenticação e Sessão (Supabase Auth)
+  // Parte 1: Autenticação e Sessão Privada (Supabase Auth)
   const [authChecking, setAuthChecking] = useState<boolean>(true);
   const [session, setSession] = useState<Session | null>(null);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [authEmail, setAuthEmail] = useState<string>('');
   const [authPassword, setAuthPassword] = useState<string>('');
   const [authError, setAuthError] = useState<string>('');
@@ -148,6 +147,15 @@ export default function FinanceHomePage() {
 
     const authListener = supabase?.auth.onAuthStateChange((_event, nextSession) => {
       if (!mounted) return;
+      if (nextSession && !isAuthorizedOwnerSession(nextSession)) {
+        void signOutUser();
+        setSession(null);
+        setIncomes([]);
+        setTransactions([]);
+        setGoals([]);
+        setUsingSupabase(false);
+        return;
+      }
       setSession(nextSession);
       if (!nextSession) {
         setIncomes([]);
@@ -218,16 +226,13 @@ export default function FinanceHomePage() {
     };
   }, [debtTotalAmount, debtAlreadyPaid, debtNextInstallment, debtDueDate]);
 
-  // Handlers de Autenticação
+  // Handlers de Autenticação (Acesso Privado)
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
     setAuthSubmitting(true);
 
-    const result =
-      authMode === 'login'
-        ? await signInWithEmailPassword(authEmail, authPassword)
-        : await signUpWithEmailPassword(authEmail, authPassword);
+    const result = await signInWithEmailPassword(authEmail, authPassword);
 
     setAuthSubmitting(false);
 
@@ -704,19 +709,17 @@ export default function FinanceHomePage() {
               <LockShieldIcon />
             </div>
             <h1 className="text-xl font-bold text-[#1A1A1A] tracking-tight">
-              {authMode === 'login' ? 'Acesse suas Finanças' : 'Criar Nova Conta'}
+              Acesso Privado
             </h1>
             <p className="text-xs text-neutral-500 leading-relaxed">
-              {authMode === 'login'
-                ? 'Entre com seu usuário (ou e-mail) e senha para visualizar e gerenciar seus dados com segurança.'
-                : 'Escolha um nome de usuário (ou e-mail) e uma senha pessoal (mínimo 6 caracteres). Cada conta possui dados 100% independentes.'}
+              Entre com seu usuário e senha para visualizar e gerenciar suas finanças pessoais.
             </p>
           </div>
 
           <form onSubmit={handleAuthSubmit} className="space-y-3.5">
             <div>
               <label className="block text-xs font-medium text-neutral-600 mb-1">
-                Usuário ou E-mail
+                Usuário
               </label>
               <input
                 type="text"
@@ -740,7 +743,7 @@ export default function FinanceHomePage() {
                 type="password"
                 required
                 minLength={6}
-                autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
+                autoComplete="current-password"
                 value={authPassword}
                 onChange={(e) => setAuthPassword(e.target.value)}
                 placeholder="••••••••"
@@ -760,30 +763,14 @@ export default function FinanceHomePage() {
               style={{ backgroundColor: '#1E1B4B', color: '#FFFFFF' }}
               className="w-full py-3 rounded-full text-sm font-semibold hover:opacity-95 active:scale-[0.99] transition-all cursor-pointer disabled:opacity-60"
             >
-              {authSubmitting
-                ? authMode === 'login'
-                  ? 'Entrando...'
-                  : 'Registrando...'
-                : authMode === 'login'
-                ? 'Entrar'
-                : 'Registrar'}
+              {authSubmitting ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
 
-          <div className="pt-3 border-t border-neutral-100 text-center space-y-2">
-            <p className="text-xs text-neutral-500">
-              {authMode === 'login' ? 'Ainda não tem uma conta?' : 'Já possui uma conta?'}
+          <div className="pt-2 border-t border-neutral-100 text-center">
+            <p className="text-[11px] text-neutral-400">
+              Uso exclusivo do proprietário • Novos cadastros desativados
             </p>
-            <button
-              type="button"
-              onClick={() => {
-                setAuthMode((prev) => (prev === 'login' ? 'register' : 'login'));
-                setAuthError('');
-              }}
-              className="w-full py-2.5 rounded-full bg-[#EEF2FF] text-[#1E1B4B] text-xs font-semibold hover:bg-indigo-100 transition-colors cursor-pointer"
-            >
-              {authMode === 'login' ? 'Registrar nova conta' : 'Voltar para Entrar'}
-            </button>
           </div>
         </div>
       </div>
